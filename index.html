@@ -69,7 +69,7 @@
     <span class="estado"><span class="punto" id="punto"></span><span id="estado">cargando…</span></span></div>
   <div class="aviso" id="aviso"></div>
   <div id="contenido"></div>
-  <div class="pie">Datos de Plade · se actualiza solo cada minuto</div>
+  <div class="pie">Datos de Plade en tiempo real</div>
 </main>
 <script>
   // Dirección de la app web de Apps Script (modo datos). La clave va en el link después de #k= y nunca llega a GitHub.
@@ -150,7 +150,7 @@
     document.getElementById('contenido').innerHTML = h.join('');
     animar();
     document.getElementById('punto').className = 'punto';
-    document.getElementById('estado').textContent = 'actualizado ' + d.hora;
+    document.getElementById('estado').textContent = 'En vivo · ' + d.hora;
     document.getElementById('aviso').style.display = 'none';
   }
 
@@ -158,7 +158,7 @@
     document.getElementById('punto').className = 'punto error';
     document.getElementById('estado').textContent = 'sin conexión';
     var a = document.getElementById('aviso');
-    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Reintento en un minuto.';
+    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Reintentando automáticamente.';
     a.style.display = 'block';
   }
 
