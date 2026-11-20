@@ -66,13 +66,174 @@
   @media (prefers-reduced-motion: reduce) { .n.sube, .n.baja, #contenido.entra { animation:none; } .barra > i { transition:none; } }
   @media (max-width:360px) { .hero .total { font-size:46px; } }
 </style>
+<!-- ===== Pestañas Histórico, Sucursales y Pronóstico: estilos (historico.css) ===== -->
+<style>
+/* ===== Pestañas Histórico, Sucursales y Pronóstico (historico.css) ===== */
+  .pestanas { display:flex; gap:2px; margin-top:12px; padding:3px; border-radius:13px; background:#E4E6EE; }
+  .pestanas button { flex:1 1 0; min-width:0; border:0; background:transparent; font:inherit; font-size:13.5px; font-weight:600;
+                     color:var(--sec); padding:8px 2px; border-radius:10px; cursor:pointer; white-space:nowrap;
+                     -webkit-tap-highlight-color:transparent; }
+  .pestanas button.activa { background:#fff; color:var(--tinta); box-shadow:0 1px 3px rgba(20,22,31,.12); }
+  .pestanas button:focus-visible { outline:2px solid var(--azul2); outline-offset:1px; }
+  #vistaHist[hidden] { display:none; }
+  #vistaHist { font-size:14px; }
+
+  /* Controles: período e IVA */
+  .hctl { margin-top:12px; }
+  .hseg { display:flex; gap:2px; padding:3px; border-radius:12px; background:#fff; }
+  .hseg button { flex:1 1 0; min-width:0; border:0; background:transparent; font:inherit; font-size:13px; font-weight:600; color:var(--sec);
+                 padding:7px 2px; border-radius:9px; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+  .hseg button.activa { background:var(--azul); color:#fff; }
+  .hctl2 { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px; padding:0 4px;
+           font-size:12.5px; color:var(--sec); }
+  .hctl2 .hseg { padding:2px; flex:0 0 auto; }
+  .hctl2 .hseg button { padding:5px 10px; font-size:12px; flex:0 0 auto; }
+  .hctl2 .hseg button.activa { background:var(--tinta); }
+
+  /* Tarjetas y textos */
+  .ht { margin-top:12px; padding:14px 18px 16px; border-radius:18px; background:#fff; min-width:0; }
+  .ht h2 { margin:0; font-size:14px; font-weight:700; color:var(--tinta); }
+  .hexp { margin:3px 0 0; font-size:12.5px; line-height:1.4; color:var(--sec); }
+  .hsub { margin:14px 0 6px; font-size:13px; font-weight:700; color:var(--tinta); }
+  .hnota { margin-top:10px; font-size:12px; line-height:1.45; color:var(--sec); }
+  .hnota p { margin:0 0 6px; }
+  .hgraf { position:relative; width:100%; margin-top:12px; }
+  .hgraf canvas { position:absolute; inset:0; }
+  .hvacio { padding:18px 0 6px; font-size:13px; color:var(--sec); }
+
+  /* Resumen principal del período */
+  .hres .hgrande { font-size:34px; font-weight:800; letter-spacing:-.8px; margin:6px 0 2px; font-variant-numeric:tabular-nums; }
+  .hcomp { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--borde);
+           font-size:12.5px; color:var(--sec); }
+  .hcomp:first-of-type { margin-top:8px; }
+  .hcomp > span:first-child { min-width:0; }
+  .hcomp .hchip, .hcomp b { flex:0 0 auto; max-width:none; }
+
+  /* Cuadrícula de indicadores */
+  .hgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .hk { padding:12px 12px 11px; border-radius:14px; background:#F7F8FB; min-width:0; }
+  .hk .e { font-size:12px; color:var(--sec); line-height:1.3; }
+  .hk .v { font-size:18px; font-weight:700; margin:3px 0 6px; font-variant-numeric:tabular-nums; white-space:nowrap;
+           overflow:hidden; text-overflow:ellipsis; }
+  .hk .s { font-size:11.5px; color:var(--sec); margin:-3px 0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Variaciones (verde sube, rojo baja) */
+  .hchip { display:inline-block; max-width:100%; padding:2px 7px; border-radius:999px; font-size:11.5px; font-weight:600;
+           white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; font-variant-numeric:tabular-nums;
+           color:var(--sec); background:#EEF0F4; }
+  .hchip.mas { color:var(--verde); background:var(--verde50); }
+  .hchip.menos { color:var(--rojo); background:var(--rojo50); }
+  .hchip.nueva { color:var(--azul); background:#E8EEFF; }
+
+  /* Estado de carga, avance y error */
+  .hestado { margin-top:12px; padding:22px 18px; border-radius:18px; background:#fff; font-size:14px; color:var(--sec); text-align:center; }
+  .hestado.err { color:var(--rojo); background:var(--rojo50); text-align:left; }
+  .hestado button, .hboton { margin-top:12px; border:0; border-radius:10px; padding:8px 14px; font:inherit; font-size:13px; font-weight:600;
+                             background:var(--azul); color:#fff; cursor:pointer; }
+  .hgiro { display:inline-block; width:16px; height:16px; margin-right:8px; vertical-align:-3px; border-radius:50%;
+           border:2px solid #D5D9E6; border-top-color:var(--azul); animation:hgiro .8s linear infinite; }
+  @keyframes hgiro { to { transform:rotate(360deg); } }
+  .havance { margin-top:12px; padding:12px 16px; border-radius:14px; background:#fff; font-size:13px; color:var(--sec); }
+  .havance .barra { margin-top:8px; }
+  .haviso { margin-top:12px; padding:10px 14px; border-radius:14px; font-size:13px; color:var(--rojo); background:var(--rojo50); }
+
+  /* Tablas: desplazamiento horizontal dentro de la tarjeta si no caben */
+  .hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:10px -18px 0; padding:0 18px; }
+  /* Sombra en el borde mientras quede contenido por ver al deslizar (las capas «local» la tapan al llegar al extremo). */
+  .hscroll { background:
+      linear-gradient(90deg, #fff 30%, rgba(255,255,255,0)) left center / 28px 100% no-repeat local,
+      linear-gradient(270deg, #fff 30%, rgba(255,255,255,0)) right center / 28px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgba(20,22,31,.22), rgba(20,22,31,0)) left center / 12px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(20,22,31,.22), rgba(20,22,31,0)) right center / 12px 100% no-repeat scroll;
+    background-color:#fff; }
+  .htab { width:100%; border-collapse:collapse; font-size:12.5px; font-variant-numeric:tabular-nums; }
+  .htab th { text-align:right; font-weight:600; color:var(--sec); font-size:11.5px; padding:6px 6px 6px; border-bottom:1px solid var(--borde);
+             white-space:nowrap; }
+  .htab td { text-align:right; padding:8px 6px; border-bottom:1px solid var(--borde); white-space:nowrap; }
+  .htab tr:last-child td { border-bottom:0; }
+  .htab th:first-child, .htab td:first-child { text-align:left; padding-left:0; }
+  .htab th:last-child, .htab td:last-child { padding-right:0; }
+  .htab td.izq, .htab th.izq { text-align:left; }
+  .htab .chico { font-size:11px; color:var(--sec); }
+  .htab .chico.mas { color:var(--verde); }
+  .htab .chico.menos { color:var(--rojo); }
+  .htab .mas { color:var(--verde); font-weight:600; }
+  .htab .menos { color:var(--rojo); font-weight:600; }
+  .htab.suc th { cursor:pointer; user-select:none; }
+  .htab.suc th.ord { color:var(--tinta); }
+  .htab.suc tbody tr { cursor:pointer; }
+  .htab.suc tbody tr.sel td { background:#F1F4FF; }
+  .htab.suc td:first-child, .htab.suc th:first-child { position:sticky; left:0; background:#fff; z-index:1; padding-right:8px; }
+  /* Nombre completo en hasta dos líneas, sin cortarlo con «…» */
+  .htab.suc td:first-child { white-space:normal; min-width:92px; max-width:122px; line-height:1.25; }
+  .htab.suc tbody tr.sel td:first-child { background:#F1F4FF; }
+  .htab.suc td:first-child b { font-weight:600; }
+  .htab td.spark { padding-top:4px; padding-bottom:4px; }
+
+  /* Reparto convenio / farmacia */
+  .hrep { margin-top:12px; padding:12px; border-radius:14px; background:#F7F8FB; }
+  .hrep .t { font-size:12px; color:var(--sec); }
+  .hrep .l { display:flex; justify-content:space-between; gap:10px; margin-top:6px; font-size:13px; }
+  .hrep .l > span { white-space:nowrap; }
+  .hrep .l b { font-variant-numeric:tabular-nums; text-align:right; }
+  .hrep .l b .s { display:block; font-size:11.5px; font-weight:500; color:var(--sec); }
+  .hsplit { display:flex; height:8px; border-radius:4px; overflow:hidden; margin-top:8px; background:var(--borde); }
+  .hsplit i { display:block; height:100%; }
+  .hpunto { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px; vertical-align:0; }
+
+  /* Filas con barras (descomposición, mismas tiendas) */
+  .hbar { padding:9px 0; border-top:1px solid var(--borde); }
+  .hbar:first-child { border-top:0; }
+  .hbar .a { display:flex; justify-content:space-between; gap:10px; font-size:13px; }
+  .hbar .a span:first-child { color:var(--tinta); min-width:0; }
+  .hbar .a b { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .hbar .p { font-size:11.5px; color:var(--sec); margin-top:2px; }
+  .hbar .riel { position:relative; height:6px; margin-top:6px; border-radius:3px; background:#F1F2F6; }
+  .hbar .riel i { position:absolute; top:0; height:100%; border-radius:3px; }
+  .hbar .riel .cero { position:absolute; top:-3px; width:1px; height:12px; background:#C9CCD6; }
+
+  /* Percentiles y explicaciones en lista */
+  .hlista { margin-top:10px; }
+  .hlista .it { display:flex; gap:12px; padding:8px 0; border-top:1px solid var(--borde); align-items:baseline; }
+  .hlista .it:first-child { border-top:0; }
+  .hlista .it .k { flex:0 0 86px; font-size:12.5px; font-weight:600; }
+  .hlista .it .k b { display:block; font-size:14px; font-variant-numeric:tabular-nums; }
+  .hlista .it .x { font-size:12.5px; color:var(--sec); line-height:1.4; }
+
+  /* Índices por día de la semana */
+  .hdias { display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-top:10px; text-align:center; }
+  .hdias div { padding:6px 0; border-radius:10px; background:#F7F8FB; font-size:11px; color:var(--sec); }
+  .hdias b { display:block; font-size:13px; white-space:nowrap; color:var(--tinta); font-variant-numeric:tabular-nums; }
+
+  /* Mapas de calor (SVG) */
+  .hcal { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:12px; }
+  .hcal svg { display:block; }
+  .hcal rect[data-i], .hmat rect[data-i] { cursor:pointer; }
+  .hleyenda { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11.5px; color:var(--sec); flex-wrap:wrap; }
+  .hleyenda i { display:inline-block; width:14px; height:10px; border-radius:2px; }
+  .hleyenda .grad { width:120px; height:8px; border-radius:4px; }
+  .hinfo { margin-top:8px; min-height:18px; font-size:12.5px; color:var(--tinta); }
+  .hmat { margin-top:12px; overflow-x:auto; }
+  .hmat svg { display:block; }
+
+  /* Selector de sucursal */
+  .hsel { width:100%; margin-top:10px; padding:9px 12px; border:1px solid var(--borde); border-radius:10px; background:#fff;
+          font:inherit; font-size:14px; color:var(--tinta); }
+
+  .hgrande2 { font-size:30px; font-weight:800; letter-spacing:-.6px; margin:6px 0 0; font-variant-numeric:tabular-nums; }
+  .hrango { font-size:12.5px; color:var(--sec); margin-top:4px; }
+  @media (max-width:360px) { .hk .v { font-size:16px; } .hres .hgrande { font-size:30px; } .pestanas button { font-size:12.5px; } }
+</style>
 </head>
 <body>
 <main>
   <div class="cab"><span id="fecha">Facturación de hoy</span>
     <span class="estado"><span class="punto" id="punto"></span><span id="estado">cargando…</span></span></div>
+  <!-- Pestañas: «Hoy» es la vista de siempre; las demás las dibuja historico.js -->
+  <nav class="pestanas" id="pestanas" role="tablist" aria-label="Vistas"><button type="button" role="tab" data-tab="hoy" class="activa" aria-selected="true">Hoy</button><button type="button" role="tab" data-tab="historico" aria-selected="false">Histórico</button><button type="button" role="tab" data-tab="sucursales" aria-selected="false">Sucursales</button><button type="button" role="tab" data-tab="pronostico" aria-selected="false">Pronóstico</button></nav>
   <div class="aviso" id="aviso"></div>
   <div id="contenido"></div>
+  <div id="vistaHist" hidden></div>
   <div class="pie">Datos de Plade en tiempo real</div>
 </main>
 <script>
@@ -189,8 +350,13 @@
 
   // Si se publica una versión nueva de la página, la pestaña abierta la toma sola (sin recargar a mano).
   // Compara el código de esta pestaña con el publicado; si cambió, recarga (la clave después de # se conserva).
-  var huella = null, MIO = [document.querySelector('style').textContent, document.currentScript.textContent];
+  // Se comparan TODOS los <style> y <script> en línea de la página (no los que tienen src, como Chart.js).
+  var huella = null, MIO = null;
+  function codigoPropio() {
+    return Array.prototype.map.call(document.querySelectorAll('style, script:not([src])'), function (el) { return el.textContent; });
+  }
   function revisarVersion() {
+    if (!MIO) MIO = codigoPropio();
     fetch(location.pathname + '?v=' + new Date().getTime(), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : null; })
       .then(function (t) {
@@ -200,8 +366,2622 @@
       })
       .catch(function () {});
   }
-  if (location.protocol !== 'file:') { revisarVersion(); setInterval(revisarVersion, 3 * 60000); }
+  // Se espera a que se lea todo el documento para tomar también los bloques de más abajo.
+  function iniciarRevision() { revisarVersion(); setInterval(revisarVersion, 3 * 60000); }
+  if (location.protocol !== 'file:') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarRevision); else iniciarRevision();
+  }
   document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
+</script>
+<!-- ===== Biblioteca de estadística (estadistica.js) ===== -->
+<script>
+/*
+ * estadistica.js — Biblioteca de estadística pura (sin DOM) para las pestañas
+ * Histórico, Sucursales y Pronóstico de «Facturación de hoy».
+ *
+ * Se expone como `var Est = {...}` en el navegador y como `module.exports` en Node.
+ * Escrita en JavaScript simple (var, function) para que corra en cualquier teléfono.
+ * Los valores no numéricos (null, NaN, undefined) se ignoran donde tiene sentido.
+ *
+ * ÍNDICE DE LA API
+ *   Utilidades
+ *     suma(arr), media(arr), normInv(p), tCdf(t, df), tInv(p, df),
+ *     diaSemana(fechaISO), sumarDias(fechaISO, n), difDias(a, b)
+ *   Descriptiva
+ *     cuantil(arr, p)                      cuantil tipo 7 (numpy por defecto)
+ *     basicos(arr)                         resumen completo de una serie
+ *     mediaMovil(arr, k, centrada, minFrac) media móvil (opcional: con datos faltantes)
+ *     histograma(arr)                      bins de Freedman–Diaconis (5 a 30)
+ *     variacion(actual, anterior)          diferencia en $ y en %
+ *     perfilSemanal(fechasISO, y)          media, mediana, cuartiles e índice por día
+ *     pareto(valores), hhi(valores)        concentración
+ *     descomponerVariacion(V0,T0,V1,T1)    efecto tráfico frente a efecto ticket
+ *   Relación y regresión
+ *     pearson(x, y)                        r, R² y valor p
+ *     correlacionMatriz(series)            matriz de r con días comunes
+ *     regresionLineal(x, y)                MCO simple con IC del 95 %
+ *     mco(X, y, opciones)                  MCO múltiple por QR (Householder)
+ *     tendenciaConSemana(fechasISO, y)     tendencia + efecto del día de semana
+ *   Series de tiempo
+ *     acf(y, maxLag)                       autocorrelación con banda ±1,96/√n
+ *     holtWinters(y, opciones)             pronóstico con estacionalidad (m = 7)
+ *     holtWintersAjustar(y, opciones)      Holt-Winters con parámetros fijos
+ *     atipicos(fechasISO, y)               días atípicos por z robusto (MAD)
+ *     puntoCambio(fechasISO, y)            cambio de nivel (sin tendencia; bootstrap por bloques)
+ *     proyeccionMes(datos)                 cierre del mes con bandas 80 % y 95 %
+ */
+var Est = (function () {
+  'use strict';
+
+  var DIA_MS = 86400000;
+
+  /* ===================== utilidades internas ===================== */
+
+  function esNum(v) { return typeof v === 'number' && isFinite(v); }
+
+  function limpios(arr) {
+    var out = [];
+    if (!arr) return out;
+    for (var i = 0; i < arr.length; i++) if (esNum(arr[i])) out.push(arr[i]);
+    return out;
+  }
+
+  function ordenar(arr) {
+    return limpios(arr).sort(function (a, b) { return a - b; });
+  }
+
+  function cuantilOrdenado(s, p) {
+    var n = s.length;
+    if (!n) return null;
+    if (n === 1) return s[0];
+    var h = (n - 1) * p;
+    var lo = Math.floor(h);
+    if (lo >= n - 1) return s[n - 1];
+    if (lo < 0) return s[0];
+    return s[lo] + (h - lo) * (s[lo + 1] - s[lo]);
+  }
+
+  /* log-gamma por Lanczos (g = 7, 9 coeficientes); error relativo ~1e-15 */
+  var LANCZOS = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  function lgamma(x) {
+    if (x < 0.5) return Math.log(Math.PI / Math.abs(Math.sin(Math.PI * x))) - lgamma(1 - x);
+    x -= 1;
+    var a = LANCZOS[0], t = x + 7.5;
+    for (var i = 1; i < 9; i++) a += LANCZOS[i] / (x + i);
+    return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+
+  /* fracción continua de la beta incompleta (Lentz modificado) */
+  function betacf(a, b, x) {
+    var MAXIT = 2000, EPS = 1e-16, FPMIN = 1e-300;
+    var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap;
+    if (Math.abs(d) < FPMIN) d = FPMIN;
+    d = 1 / d;
+    var h = d;
+    for (var m = 1; m <= MAXIT; m++) {
+      var m2 = 2 * m;
+      var aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+      d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d; h *= d * c;
+      aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+      d = 1 + aa * d; if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = 1 + aa / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d;
+      var del = d * c;
+      h *= del;
+      if (Math.abs(del - 1) < EPS) break;
+    }
+    return h;
+  }
+
+  /* beta incompleta regularizada I_x(a, b) */
+  function betai(a, b, x) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    var lbt = lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x);
+    if (x < (a + 1) / (a + b + 2)) return Math.exp(lbt) * betacf(a, b, x) / a;
+    return 1 - Math.exp(lbt) * betacf(b, a, 1 - x) / b;
+  }
+
+  /* valor p bilateral de una t con df grados de libertad (preciso para p pequeños) */
+  function pBilateral(t, df) {
+    if (!esNum(t)) return t !== t ? null : 0; // t = ±Infinity → p = 0
+    if (!(df > 0)) return null;
+    return Math.min(1, betai(df / 2, 0.5, df / (df + t * t)));
+  }
+
+  function tDens(t, df) {
+    return Math.exp(lgamma((df + 1) / 2) - lgamma(df / 2) - 0.5 * Math.log(df * Math.PI) -
+      (df + 1) / 2 * Math.log(1 + t * t / df));
+  }
+
+  function fechaUTC(iso) {
+    var p = String(iso).slice(0, 10).split('-');
+    return Date.UTC(+p[0], +p[1] - 1, +p[2]);
+  }
+
+  function aISO(ms) {
+    var d = new Date(ms);
+    var m = d.getUTCMonth() + 1, dd = d.getUTCDate();
+    return d.getUTCFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (dd < 10 ? '0' : '') + dd;
+  }
+
+  /* ===================== utilidades públicas ===================== */
+
+  /**
+   * Suma de los valores numéricos.
+   * @param {number[]} arr  @returns {number} (0 si no hay datos)
+   */
+  function suma(arr) {
+    var s = 0;
+    if (!arr) return 0;
+    for (var i = 0; i < arr.length; i++) if (esNum(arr[i])) s += arr[i];
+    return s;
+  }
+
+  /**
+   * Media aritmética de los valores numéricos.
+   * @param {number[]} arr  @returns {number|null} null si no hay datos
+   */
+  function media(arr) {
+    var s = 0, n = 0;
+    if (!arr) return null;
+    for (var i = 0; i < arr.length; i++) if (esNum(arr[i])) { s += arr[i]; n++; }
+    return n ? s / n : null;
+  }
+
+  /**
+   * Inversa de la normal estándar (algoritmo de Acklam, error relativo < 1,2e-9).
+   * @param {number} p probabilidad en (0, 1)  @returns {number} z tal que Φ(z) = p
+   */
+  function normInv(p) {
+    if (p <= 0) return -Infinity;
+    if (p >= 1) return Infinity;
+    var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+      1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+    var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+      6.680131188771972e+01, -1.328068155288572e+01];
+    var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+      -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+    var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+      3.754408661907416e+00];
+    var pl = 0.02425, q, r;
+    if (p < pl) {
+      q = Math.sqrt(-2 * Math.log(p));
+      return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+        ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    }
+    if (p > 1 - pl) {
+      q = Math.sqrt(-2 * Math.log(1 - p));
+      return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+        ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    }
+    q = p - 0.5; r = q * q;
+    return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+      (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  }
+
+  /**
+   * Función de distribución acumulada de la t de Student.
+   * @param {number} t  @param {number} df grados de libertad (> 0)
+   * @returns {number} P(T ≤ t)
+   */
+  function tCdf(t, df) {
+    if (t === Infinity) return 1;
+    if (t === -Infinity) return 0;
+    var ib = betai(df / 2, 0.5, df / (df + t * t));
+    return t > 0 ? 1 - 0.5 * ib : 0.5 * ib;
+  }
+
+  /**
+   * Cuantil de la t de Student (Newton con respaldo de bisección).
+   * @param {number} p probabilidad en (0, 1)  @param {number} df
+   * @returns {number} t tal que tCdf(t, df) = p
+   */
+  function tInv(p, df) {
+    if (p <= 0) return -Infinity;
+    if (p >= 1) return Infinity;
+    if (p === 0.5) return 0;
+    var x = normInv(p), lo = -1e6, hi = 1e6;
+    for (var i = 0; i < 100; i++) {
+      var f = tCdf(x, df) - p;
+      if (Math.abs(f) < 1e-15) break;
+      if (f > 0) hi = x; else lo = x;
+      var nx = x - f / tDens(x, df);
+      if (!(nx > lo && nx < hi)) nx = (lo + hi) / 2;
+      if (Math.abs(nx - x) < 1e-13 * Math.max(1, Math.abs(x))) { x = nx; break; }
+      x = nx;
+    }
+    return x;
+  }
+
+  /**
+   * Día de la semana de una fecha ISO, calculado en UTC (no depende de la zona del navegador).
+   * @param {string} fechaISO 'YYYY-MM-DD'  @returns {number} 0 = domingo … 6 = sábado
+   */
+  function diaSemana(fechaISO) { return new Date(fechaUTC(fechaISO)).getUTCDay(); }
+
+  /**
+   * Suma n días (puede ser negativo) a una fecha ISO.
+   * @param {string} fechaISO  @param {number} n  @returns {string} 'YYYY-MM-DD'
+   */
+  function sumarDias(fechaISO, n) { return aISO(fechaUTC(fechaISO) + n * DIA_MS); }
+
+  /**
+   * Días entre dos fechas ISO (b − a).
+   * @param {string} a  @param {string} b  @returns {number} entero
+   */
+  function difDias(a, b) { return Math.round((fechaUTC(b) - fechaUTC(a)) / DIA_MS); }
+
+  /* ===================== descriptiva ===================== */
+
+  /**
+   * Cuantil con interpolación lineal (tipo 7 de Hyndman–Fan, el de numpy por defecto).
+   * @param {number[]} arr  @param {number} p en [0, 1]  @returns {number|null}
+   */
+  function cuantil(arr, p) { return cuantilOrdenado(ordenar(arr), p); }
+
+  /**
+   * Resumen estadístico de una serie (ignora valores no numéricos).
+   * @param {number[]} arr
+   * @returns {{n:number, suma:number, media:number, mediana:number, min:number, max:number,
+   *   iMin:number, iMax:number, rango:number, varianza:number, desv:number, cv:number,
+   *   p10:number, p25:number, p75:number, p90:number, iqr:number, asimetria:number,
+   *   curtosis:number}}  varianza muestral (n−1); cv = desv/media; asimetría y curtosis
+   *   (exceso) ajustadas como scipy con bias=False; null donde no se puede calcular.
+   */
+  function basicos(arr) {
+    var x = [], iMin = -1, iMax = -1, i;
+    arr = arr || [];
+    for (i = 0; i < arr.length; i++) {
+      if (!esNum(arr[i])) continue;
+      x.push(arr[i]);
+      if (iMin < 0 || arr[i] < arr[iMin]) iMin = i;
+      if (iMax < 0 || arr[i] > arr[iMax]) iMax = i;
+    }
+    var n = x.length;
+    var r = { n: n, suma: 0, media: null, mediana: null, min: null, max: null, iMin: null, iMax: null,
+      rango: null, varianza: null, desv: null, cv: null, p10: null, p25: null, p75: null, p90: null,
+      iqr: null, asimetria: null, curtosis: null };
+    if (!n) return r;
+    var s = 0;
+    for (i = 0; i < n; i++) s += x[i];
+    var m = s / n, m2 = 0, m3 = 0, m4 = 0;
+    for (i = 0; i < n; i++) {
+      var dd = x[i] - m, d2 = dd * dd;
+      m2 += d2; m3 += d2 * dd; m4 += d2 * d2;
+    }
+    var srt = x.slice().sort(function (a, b) { return a - b; });
+    r.suma = s; r.media = m;
+    r.mediana = cuantilOrdenado(srt, 0.5);
+    r.min = srt[0]; r.max = srt[n - 1]; r.iMin = iMin; r.iMax = iMax;
+    r.rango = r.max - r.min;
+    r.p10 = cuantilOrdenado(srt, 0.10); r.p25 = cuantilOrdenado(srt, 0.25);
+    r.p75 = cuantilOrdenado(srt, 0.75); r.p90 = cuantilOrdenado(srt, 0.90);
+    r.iqr = r.p75 - r.p25;
+    if (n > 1) {
+      r.varianza = m2 / (n - 1);
+      r.desv = Math.sqrt(r.varianza);
+      r.cv = m !== 0 ? r.desv / m : null;
+    }
+    var pm2 = m2 / n, pm3 = m3 / n, pm4 = m4 / n;
+    if (n > 2 && pm2 > 0) {
+      var g1 = pm3 / Math.pow(pm2, 1.5);
+      r.asimetria = g1 * Math.sqrt(n * (n - 1)) / (n - 2);
+    }
+    if (n > 3 && pm2 > 0) {
+      var g2 = pm4 / (pm2 * pm2) - 3;
+      r.curtosis = ((n + 1) * g2 + 6) * (n - 1) / ((n - 2) * (n - 3));
+    }
+    return r;
+  }
+
+  /**
+   * Media móvil de k puntos. Sin centrar: ventana [i−k+1, i]. Centrada (como pandas
+   * rolling(center=True)): ventana [i−⌈(k−1)/2⌉, i+⌊(k−1)/2⌋].
+   * Por defecto exige la ventana completa. Con minFrac (0 < minFrac ≤ 1) promedia los
+   * valores disponibles de la ventana si hay al menos ⌈minFrac·k⌉ (útil cuando los días
+   * cerrados vienen como null); la ventana debe caber dentro de la serie.
+   * @param {number[]} arr  @param {number} k  @param {boolean} [centrada]
+   * @param {number} [minFrac]
+   * @returns {Array<number|null>} mismo largo; null si la ventana no está completa
+   *   (o, con minFrac, si no tiene suficientes valores numéricos).
+   */
+  function mediaMovil(arr, k, centrada, minFrac) {
+    var n = arr ? arr.length : 0, out = new Array(n), i;
+    var atras = centrada ? Math.ceil((k - 1) / 2) : k - 1;
+    var minimo = esNum(minFrac) && minFrac > 0 && minFrac <= 1 ? Math.max(1, Math.ceil(minFrac * k - 1e-9)) : k;
+    var pref = [0], buenos = [0];
+    for (i = 0; i < n; i++) {
+      var ok = esNum(arr[i]);
+      pref.push(pref[i] + (ok ? arr[i] : 0));
+      buenos.push(buenos[i] + (ok ? 1 : 0));
+    }
+    for (i = 0; i < n; i++) {
+      var a = i - atras, b = a + k - 1;
+      if (a < 0 || b >= n) { out[i] = null; continue; }
+      var c = buenos[b + 1] - buenos[a];
+      out[i] = c >= minimo ? (pref[b + 1] - pref[a]) / c : null;
+    }
+    return out;
+  }
+
+  /**
+   * Histograma con la regla de Freedman–Diaconis: ancho = 2·IQR/n^(1/3); número de
+   * bins = ⌈rango/ancho⌉ limitado a [5, 30]; luego ancho = rango/bins. El último bin
+   * incluye el máximo.
+   * @param {number[]} arr
+   * @returns {{ancho:number, bins:Array<{desde:number, hasta:number, n:number}>}}
+   */
+  function histograma(arr) {
+    var s = ordenar(arr), n = s.length;
+    if (!n) return { ancho: 0, bins: [] };
+    var mn = s[0], mx = s[n - 1], rango = mx - mn;
+    if (rango === 0) return { ancho: 0, bins: [{ desde: mn, hasta: mx, n: n }] };
+    var iqr = cuantilOrdenado(s, 0.75) - cuantilOrdenado(s, 0.25);
+    var w = 2 * iqr / Math.pow(n, 1 / 3);
+    var k = w > 0 ? Math.ceil(rango / w) : 30;
+    k = Math.max(5, Math.min(30, k));
+    var ancho = rango / k, bins = [], i;
+    for (i = 0; i < k; i++) bins.push({ desde: mn + i * ancho, hasta: i === k - 1 ? mx : mn + (i + 1) * ancho, n: 0 });
+    for (i = 0; i < n; i++) {
+      var j = Math.floor((s[i] - mn) / ancho);
+      if (j >= k) j = k - 1;
+      if (j < 0) j = 0;
+      bins[j].n++;
+    }
+    return { ancho: ancho, bins: bins };
+  }
+
+  /**
+   * Variación entre dos valores.
+   * @param {number} actual  @param {number} anterior
+   * @returns {{dif:number, pct:number|null}} dif = actual − anterior; pct en PORCENTAJE
+   *   (12,5 significa +12,5 %); null si anterior es 0 o falta un dato.
+   */
+  function variacion(actual, anterior) {
+    if (!esNum(actual) || !esNum(anterior)) return { dif: null, pct: null };
+    var dif = actual - anterior;
+    return { dif: dif, pct: anterior === 0 ? null : dif / Math.abs(anterior) * 100 };
+  }
+
+  /**
+   * Perfil por día de la semana.
+   * @param {string[]} fechasISO  @param {number[]} y
+   * @returns {Array<{dia:number, n:number, media:number|null, mediana:number|null,
+   *   p25:number|null, p75:number|null, indice:number|null}>} 7 objetos, dia 0 = domingo;
+   *   indice = media del día / promedio de las medias de los días con datos × 100.
+   */
+  function perfilSemanal(fechasISO, y) {
+    var grupos = [[], [], [], [], [], [], []], i;
+    for (i = 0; i < y.length; i++) if (esNum(y[i])) grupos[diaSemana(fechasISO[i])].push(y[i]);
+    var out = [], medias = [];
+    for (i = 0; i < 7; i++) {
+      var s = grupos[i].slice().sort(function (a, b) { return a - b; });
+      var o = { dia: i, n: s.length, media: s.length ? media(s) : null,
+        mediana: cuantilOrdenado(s, 0.5), p25: cuantilOrdenado(s, 0.25),
+        p75: cuantilOrdenado(s, 0.75), indice: null };
+      if (s.length) medias.push(o.media);
+      out.push(o);
+    }
+    var mg = media(medias);
+    for (i = 0; i < 7; i++) if (out[i].n && mg) out[i].indice = out[i].media / mg * 100;
+    return out;
+  }
+
+  /**
+   * Análisis de Pareto.
+   * @param {number[]} valores (no negativos)
+   * @returns {{orden:number[], acumulado:number[], n80:number}} orden = índices de mayor a
+   *   menor; acumulado = fracción acumulada (0–1) en ese orden; n80 = cuántos hacen el 80 %.
+   */
+  function pareto(valores) {
+    var idx = [], i, tot = 0;
+    for (i = 0; i < valores.length; i++) { idx.push(i); tot += esNum(valores[i]) ? valores[i] : 0; }
+    idx.sort(function (a, b) { return (esNum(valores[b]) ? valores[b] : 0) - (esNum(valores[a]) ? valores[a] : 0) || a - b; });
+    var acum = [], c = 0, n80 = 0;
+    for (i = 0; i < idx.length; i++) {
+      c += esNum(valores[idx[i]]) ? valores[idx[i]] : 0;
+      acum.push(tot > 0 ? c / tot : 0);
+      if (!n80 && tot > 0 && acum[i] >= 0.8 - 1e-12) n80 = i + 1;
+    }
+    return { orden: idx, acumulado: acum, n80: n80 };
+  }
+
+  /**
+   * Índice de Herfindahl–Hirschman: suma de las participaciones al cuadrado (en %).
+   * @param {number[]} valores  @returns {number|null} 0–10000 (10000 = una sola sucursal)
+   */
+  function hhi(valores) {
+    var tot = suma(valores), h = 0;
+    if (!(tot > 0)) return null;
+    for (var i = 0; i < valores.length; i++) if (esNum(valores[i])) { var s = valores[i] / tot * 100; h += s * s; }
+    return h;
+  }
+
+  /**
+   * Descompone la variación de la venta V = T·A (tráfico × ticket promedio) en dólares,
+   * con la identidad ln(V1/V0) = ln(T1/T0) + ln(A1/A0) repartida proporcionalmente
+   * (media logarítmica, LMDI). Si algún valor es 0, cae a un reparto simple:
+   * efecto tráfico = (T1 − T0)·A0 y el resto al ticket.
+   * @param {number} V0 venta anterior  @param {number} T0 tickets anteriores
+   * @param {number} V1 venta actual    @param {number} T1 tickets actuales
+   * @returns {{dV:number, efectoTrafico:number, efectoTicket:number}} los efectos suman dV
+   */
+  function descomponerVariacion(V0, T0, V1, T1) {
+    var dV = V1 - V0;
+    if (V0 > 0 && T0 > 0 && V1 > 0 && T1 > 0) {
+      var L = V1 === V0 ? V0 : dV / Math.log(V1 / V0);
+      var eT = L * Math.log(T1 / T0);
+      var eA = L * Math.log((V1 / T1) / (V0 / T0));
+      return { dV: dV, efectoTrafico: eT, efectoTicket: eA };
+    }
+    var A0 = T0 > 0 ? V0 / T0 : (T1 > 0 ? V1 / T1 : 0);
+    var efT = (T1 - T0) * A0;
+    return { dV: dV, efectoTrafico: efT, efectoTicket: dV - efT };
+  }
+
+  /* ===================== relación y regresión ===================== */
+
+  function pares(x, y) {
+    var a = [], b = [];
+    for (var i = 0; i < Math.min(x.length, y.length); i++) if (esNum(x[i]) && esNum(y[i])) { a.push(x[i]); b.push(y[i]); }
+    return [a, b];
+  }
+
+  /**
+   * Correlación de Pearson con valor p bilateral (t con n−2 g.l.). Usa solo los pares
+   * donde ambos valores son numéricos.
+   * @param {number[]} x  @param {number[]} y
+   * @returns {{r:number|null, r2:number|null, n:number, p:number|null}}
+   */
+  function pearson(x, y) {
+    var pr = pares(x, y), a = pr[0], b = pr[1], n = a.length, i;
+    if (n < 3) return { r: null, r2: null, n: n, p: null };
+    var ma = media(a), mb = media(b), sab = 0, saa = 0, sbb = 0;
+    for (i = 0; i < n; i++) {
+      var da = a[i] - ma, db = b[i] - mb;
+      sab += da * db; saa += da * da; sbb += db * db;
+    }
+    if (!(saa > 0) || !(sbb > 0)) return { r: null, r2: null, n: n, p: null };
+    var r = sab / Math.sqrt(saa * sbb);
+    if (r > 1) r = 1; if (r < -1) r = -1;
+    var p = Math.abs(r) === 1 ? 0 : pBilateral(r * Math.sqrt((n - 2) / (1 - r * r)), n - 2);
+    return { r: r, r2: r * r, n: n, p: p };
+  }
+
+  /**
+   * Matriz de correlaciones de Pearson entre series alineadas por día (null = sin dato).
+   * @param {Array<Array<number|null>>} series  k series del mismo largo
+   * @returns {Array<Array<number|null>>} k×k; null si hay menos de 10 días comunes
+   */
+  function correlacionMatriz(series) {
+    var k = series.length, M = [], i, j;
+    for (i = 0; i < k; i++) M.push(new Array(k));
+    for (i = 0; i < k; i++) {
+      for (j = i; j < k; j++) {
+        var res = pearson(series[i], series[j]);
+        var v = res.n >= 10 ? res.r : null;
+        M[i][j] = v; M[j][i] = v;
+      }
+    }
+    return M;
+  }
+
+  /**
+   * Regresión lineal simple por MCO: y = intercepto + pendiente·x.
+   * @param {number[]} x  @param {number[]} y
+   * @returns {{pendiente:number, intercepto:number, r2:number, ePendiente:number,
+   *   ic95:number[], t:number, p:number, n:number, residuos:number[]}|null}
+   *   ePendiente = error estándar; ic95 = [lo, hi] con t de n−2 g.l.; residuos = y − ŷ
+   *   (solo de los pares válidos).
+   */
+  function regresionLineal(x, y) {
+    var pr = pares(x, y), a = pr[0], b = pr[1], n = a.length, i;
+    if (n < 3) return null;
+    var ma = media(a), mb = media(b), sxx = 0, sxy = 0, syy = 0;
+    for (i = 0; i < n; i++) {
+      var dx = a[i] - ma, dy = b[i] - mb;
+      sxx += dx * dx; sxy += dx * dy; syy += dy * dy;
+    }
+    if (!(sxx > 0)) return null;
+    var pend = sxy / sxx, inter = mb - pend * ma, sse = 0, res = [];
+    for (i = 0; i < n; i++) { var e = b[i] - inter - pend * a[i]; res.push(e); sse += e * e; }
+    var se = Math.sqrt(sse / (n - 2) / sxx);
+    var t = se > 0 ? pend / se : (pend === 0 ? 0 : Infinity * Math.sign(pend));
+    var tc = tInv(0.975, n - 2);
+    return { pendiente: pend, intercepto: inter, r2: syy > 0 ? 1 - sse / syy : null,
+      ePendiente: se, ic95: [pend - tc * se, pend + tc * se], t: t,
+      p: pBilateral(t, n - 2), n: n, residuos: res };
+  }
+
+  /**
+   * Regresión múltiple por MCO resuelta con descomposición QR (Householder), estable
+   * numéricamente. Se agrega una columna de unos (intercepto) como primer coeficiente,
+   * salvo opciones.intercepto === false. Filas con algún valor no numérico se omiten.
+   * @param {number[][]} X  filas de regresores (n × p, sin la columna de unos)
+   * @param {number[]} y    respuesta (largo n)
+   * @param {{intercepto?:boolean}} [opciones]
+   * @returns {{coef:number[], ee:number[], t:number[], p:number[], r2:number, r2aj:number,
+   *   residuos:number[], sigma:number, n:number, gl:number}|null} null si la matriz es
+   *   singular (columnas colineales) o faltan datos.
+   */
+  function mco(X, y, opciones) {
+    var inter = !(opciones && opciones.intercepto === false);
+    var filas = [], yy = [], i, j, k;
+    for (i = 0; i < y.length; i++) {
+      if (!esNum(y[i]) || !X[i]) continue;
+      var f = inter ? [1] : [], ok = true;
+      for (j = 0; j < X[i].length; j++) { if (!esNum(X[i][j])) { ok = false; break; } f.push(X[i][j]); }
+      if (!ok) continue;
+      filas.push(f); yy.push(y[i]);
+    }
+    var n = filas.length;
+    if (!n) return null;
+    var p = filas[0].length;
+    if (n <= p) return null;
+    // A por columnas
+    var A = [];
+    for (j = 0; j < p; j++) { var col = new Float64Array(n); for (i = 0; i < n; i++) col[i] = filas[i][j]; A.push(col); }
+    var qty = Float64Array.from ? Float64Array.from(yy) : new Float64Array(yy);
+    var normMax = 0;
+    for (j = 0; j < p; j++) { var s2 = 0; for (i = 0; i < n; i++) s2 += A[j][i] * A[j][i]; normMax = Math.max(normMax, Math.sqrt(s2)); }
+    var R = [];
+    for (k = 0; k < p; k++) {
+      var xk = A[k], nrm = 0;
+      for (i = k; i < n; i++) nrm += xk[i] * xk[i];
+      nrm = Math.sqrt(nrm);
+      if (nrm <= 1e-10 * normMax) return null;
+      var alfa = xk[k] > 0 ? -nrm : nrm;
+      var v = new Float64Array(n);
+      for (i = k; i < n; i++) v[i] = xk[i];
+      v[k] -= alfa;
+      var vv = 0;
+      for (i = k; i < n; i++) vv += v[i] * v[i];
+      if (vv > 0) {
+        for (j = k; j < p; j++) {
+          var dot = 0;
+          for (i = k; i < n; i++) dot += v[i] * A[j][i];
+          var fac = 2 * dot / vv;
+          for (i = k; i < n; i++) A[j][i] -= fac * v[i];
+        }
+        var dy = 0;
+        for (i = k; i < n; i++) dy += v[i] * qty[i];
+        var fy = 2 * dy / vv;
+        for (i = k; i < n; i++) qty[i] -= fy * v[i];
+      }
+      if (Math.abs(A[k][k]) <= 1e-10 * normMax) return null;
+    }
+    for (i = 0; i < p; i++) { R.push([]); for (j = 0; j < p; j++) R[i].push(j >= i ? A[j][i] : 0); }
+    // sustitución hacia atrás
+    var coef = new Array(p);
+    for (i = p - 1; i >= 0; i--) {
+      var s = qty[i];
+      for (j = i + 1; j < p; j++) s -= R[i][j] * coef[j];
+      coef[i] = s / R[i][i];
+    }
+    // inversa de R (triangular superior)
+    var Ri = [];
+    for (i = 0; i < p; i++) { Ri.push(new Array(p)); for (j = 0; j < p; j++) Ri[i][j] = 0; }
+    for (j = 0; j < p; j++) {
+      Ri[j][j] = 1 / R[j][j];
+      for (i = j - 1; i >= 0; i--) {
+        var acc = 0;
+        for (k = i + 1; k <= j; k++) acc += R[i][k] * Ri[k][j];
+        Ri[i][j] = -acc / R[i][i];
+      }
+    }
+    var res = [], sse = 0, my = media(yy), sst = 0;
+    for (i = 0; i < n; i++) {
+      var yh = 0;
+      for (j = 0; j < p; j++) yh += filas[i][j] * coef[j];
+      var e = yy[i] - yh;
+      res.push(e); sse += e * e;
+      sst += (yy[i] - my) * (yy[i] - my);
+    }
+    var gl = n - p, sig2 = sse / gl, ee = [], tt = [], pp = [];
+    for (j = 0; j < p; j++) {
+      var q = 0;
+      for (k = j; k < p; k++) q += Ri[j][k] * Ri[j][k];
+      var se = Math.sqrt(sig2 * q);
+      ee.push(se);
+      var tv = se > 0 ? coef[j] / se : null;
+      tt.push(tv);
+      pp.push(tv === null ? null : pBilateral(tv, gl));
+    }
+    var r2 = sst > 0 ? 1 - sse / sst : null;
+    var r2aj = r2 === null ? null : 1 - (1 - r2) * (n - (inter ? 1 : 0)) / gl;
+    return { coef: coef, ee: ee, t: tt, p: pp, r2: r2, r2aj: r2aj, residuos: res,
+      sigma: Math.sqrt(sig2), n: n, gl: gl };
+  }
+
+  /**
+   * Tendencia lineal separada del efecto semanal: MCO de y contra el tiempo (días desde
+   * la primera fecha) más 6 variables indicadoras de día de semana (referencia: el primer
+   * día presente, normalmente el domingo).
+   * @param {string[]} fechasISO  @param {number[]} y
+   * @returns {{pendienteDia:number, ee:number, ic95:number[], p:number, r2:number,
+   *   r2aj:number, n:number, efectoDia:Array<number|null>}|null} efectoDia: 7 valores en $
+   *   (0 = domingo) relativos al promedio de los días presentes (suman 0).
+   */
+  function tendenciaConSemana(fechasISO, y) {
+    var presentes = [0, 0, 0, 0, 0, 0, 0], i, d;
+    var f0 = null;
+    for (i = 0; i < y.length; i++) if (esNum(y[i])) { presentes[diaSemana(fechasISO[i])]++; if (f0 === null) f0 = fechasISO[i]; }
+    var dias = [];
+    for (d = 0; d < 7; d++) if (presentes[d]) dias.push(d);
+    if (f0 === null || dias.length < 1) return null;
+    var ref = dias[0], otros = dias.slice(1);
+    var X = [], yy = [];
+    for (i = 0; i < y.length; i++) {
+      if (!esNum(y[i])) continue;
+      var ds = diaSemana(fechasISO[i]), fila = [difDias(f0, fechasISO[i])];
+      for (var j = 0; j < otros.length; j++) fila.push(ds === otros[j] ? 1 : 0);
+      X.push(fila); yy.push(y[i]);
+    }
+    var m = mco(X, yy);
+    if (!m) return null;
+    var tc = tInv(0.975, m.gl);
+    var ef = [null, null, null, null, null, null, null];
+    ef[ref] = 0;
+    for (j = 0; j < otros.length; j++) ef[otros[j]] = m.coef[2 + j];
+    var mef = media(ef);
+    for (d = 0; d < 7; d++) if (ef[d] !== null) ef[d] -= mef;
+    return { pendienteDia: m.coef[1], ee: m.ee[1], ic95: [m.coef[1] - tc * m.ee[1], m.coef[1] + tc * m.ee[1]],
+      p: m.p[1], r2: m.r2, r2aj: m.r2aj, n: m.n, efectoDia: ef };
+  }
+
+  /* ===================== series de tiempo ===================== */
+
+  /**
+   * Función de autocorrelación (como statsmodels acf con adjusted=False).
+   * @param {number[]} y serie sin huecos  @param {number} maxLag
+   * @returns {{valores:number[], banda:number, n:number}} valores = [r1 … r_maxLag];
+   *   banda = 1,96/√n (fuera de ±banda la autocorrelación es significativa al 5 %).
+   */
+  function acf(y, maxLag) {
+    var x = limpios(y), n = x.length, m = media(x), den = 0, i, k, vals = [];
+    for (i = 0; i < n; i++) den += (x[i] - m) * (x[i] - m);
+    for (k = 1; k <= maxLag; k++) {
+      if (k >= n || !(den > 0)) { vals.push(null); continue; }
+      var num = 0;
+      for (i = 0; i + k < n; i++) num += (x[i] - m) * (x[i + k] - m);
+      vals.push(num / den);
+    }
+    return { valores: vals, banda: n ? 1.96 / Math.sqrt(n) : null, n: n };
+  }
+
+  /* --- Holt-Winters ---------------------------------------------------------
+   * Recurrencias (forma clásica, iguales a statsmodels ExponentialSmoothing):
+   *  aditivo:        ŷ_t = l_{t−1} + b_{t−1} + s_{t−m}
+   *                  l_t = α(y_t − s_{t−m}) + (1−α)(l_{t−1} + b_{t−1})
+   *                  s_t = γ(y_t − l_{t−1} − b_{t−1}) + (1−γ)s_{t−m}
+   *  multiplicativo: ŷ_t = (l_{t−1} + b_{t−1})·s_{t−m}
+   *                  l_t = α·y_t/s_{t−m} + (1−α)(l_{t−1} + b_{t−1})
+   *                  s_t = γ·y_t/(l_{t−1} + b_{t−1}) + (1−γ)s_{t−m}
+   *  ambos:          b_t = β(l_t − l_{t−1}) + (1−β)b_{t−1}
+   * Inicialización estándar con las 2 primeras temporadas (A1, A2 = sus medias):
+   *  l_0 = A1;  b_0 = (A2 − A1)/m;
+   *  s_j = ((y_j − A1) + (y_{j+m} − A2))/2 (aditivo, centrado a suma 0) o
+   *  s_j = (y_j/A1 + y_{j+m}/A2)/2 (multiplicativo, normalizado a media 1).
+   * ------------------------------------------------------------------------ */
+
+  function hwInicial(y, m, mult) {
+    if (y.length < 2 * m) return null;
+    var A1 = 0, A2 = 0, j, completo = true;
+    for (j = 0; j < 2 * m; j++) if (!esNum(y[j])) { completo = false; break; }
+    if (!completo) return hwInicialFaltantes(y, m, mult);
+    for (j = 0; j < m; j++) { A1 += y[j]; A2 += y[j + m]; }
+    A1 /= m; A2 /= m;
+    if (mult && !(A1 > 0 && A2 > 0)) return null;
+    var s = new Float64Array(m), tot = 0;
+    for (j = 0; j < m; j++) {
+      s[j] = mult ? (y[j] / A1 + y[j + m] / A2) / 2 : ((y[j] - A1) + (y[j + m] - A2)) / 2;
+      tot += s[j];
+    }
+    for (j = 0; j < m; j++) s[j] = mult ? s[j] / (tot / m) : s[j] - tot / m;
+    if (mult) for (j = 0; j < m; j++) if (!(s[j] > 0)) return null;
+    return { nivel: A1, tendencia: (A2 - A1) / m, estacional: s };
+  }
+
+  /* Inicialización cuando faltan datos (días cerrados) en las 2 primeras temporadas:
+     usa hasta 4 temporadas y solo los valores disponibles. Media de cada temporada
+     ajustada por el índice estacional (dos pasadas), nivel y tendencia por MCO sobre
+     esas medias; un día de la semana sin ningún dato queda con índice neutro. */
+  function hwInicialFaltantes(y, m, mult) {
+    var K = Math.min(4, Math.floor(y.length / m)), A = [], s = new Float64Array(m), k, j, pasada;
+    for (j = 0; j < m; j++) s[j] = mult ? 1 : 0;
+    for (pasada = 0; pasada < 3; pasada++) {
+      // medias de temporada sin el efecto estacional actual
+      A = [];
+      for (k = 0; k < K; k++) {
+        var sm = 0, c = 0;
+        for (j = 0; j < m; j++) {
+          var v = y[k * m + j];
+          if (esNum(v)) { sm += mult ? v / s[j] : v - s[j]; c++; }
+        }
+        A.push(c >= Math.ceil(m / 2) ? sm / c : null);
+      }
+      // índices estacionales con las medias de temporada
+      var tot = 0, nj = 0, tiene = [];
+      for (j = 0; j < m; j++) {
+        var r = 0, cr = 0;
+        for (k = 0; k < K; k++) {
+          var w = y[k * m + j];
+          if (esNum(w) && A[k] !== null && (!mult || A[k] > 0)) { r += mult ? w / A[k] : w - A[k]; cr++; }
+        }
+        tiene.push(cr > 0);
+        if (cr) { s[j] = r / cr; tot += s[j]; nj++; } else s[j] = mult ? 1 : 0;
+      }
+      if (!nj) return null;
+      for (j = 0; j < m; j++) if (tiene[j]) s[j] = mult ? s[j] / (tot / nj) : s[j] - tot / nj;
+      if (mult) for (j = 0; j < m; j++) if (!(s[j] > 0)) return null;
+    }
+    // nivel (al centro de la temporada 0, como la forma clásica) y tendencia por MCO
+    var xs = [], ys = [];
+    for (k = 0; k < K; k++) if (A[k] !== null) { xs.push(k); ys.push(A[k]); }
+    if (xs.length < 2) return null;
+    var mx = media(xs), my = media(ys), sxx = 0, sxy = 0;
+    for (k = 0; k < xs.length; k++) { sxx += (xs[k] - mx) * (xs[k] - mx); sxy += (xs[k] - mx) * (ys[k] - my); }
+    var pend = sxy / sxx, nivel = my - pend * mx;
+    if (mult && !(nivel > 0)) return null;
+    return { nivel: nivel, tendencia: pend / m, estacional: s };
+  }
+
+  var SEAS_TMP = null;
+  /* SSE de un paso; corta en cuanto supera `tope` (poda de la rejilla) */
+  function hwSSE(y, n, m, mult, a, b, g, ini, tope) {
+    if (!SEAS_TMP || SEAS_TMP.length < m) SEAS_TMP = new Float64Array(m);
+    var seas = SEAS_TMP, l = ini.nivel, bb = ini.tendencia, sse = 0, j = 0, t;
+    for (t = 0; t < m; t++) seas[t] = ini.estacional[t];
+    var a1 = 1 - a, b1 = 1 - b, g1 = 1 - g;
+    for (t = 0; t < n; t++) {
+      var s = seas[j], lb = l + bb, yt = y[t], f, ln;
+      if (mult) {
+        if (!(lb > 0) || !(s > 0)) return Infinity;
+        f = lb * s;
+        if (yt !== yt) yt = f;
+        ln = a * yt / s + a1 * lb;
+        seas[j] = g * yt / lb + g1 * s;
+      } else {
+        f = lb + s;
+        if (yt !== yt) yt = f;
+        ln = a * (yt - s) + a1 * lb;
+        seas[j] = g * (yt - lb) + g1 * s;
+      }
+      var e = yt - f;
+      sse += e * e;
+      if (sse > tope) return Infinity;
+      bb = b * (ln - l) + b1 * bb;
+      l = ln;
+      if (++j === m) j = 0;
+    }
+    return sse;
+  }
+
+  function hwCorrer(y, m, mult, a, b, g, ini) {
+    var n = y.length, seas = new Float64Array(m), l = ini.nivel, bb = ini.tendencia, j = 0, t;
+    for (t = 0; t < m; t++) seas[t] = ini.estacional[t];
+    var aj = new Array(n), res = new Array(n), sse = 0, rel = 0, nrel = 0;
+    for (t = 0; t < n; t++) {
+      var s = seas[j], lb = l + bb, yt = y[t], f, ln;
+      f = mult ? lb * s : lb + s;
+      var falta = yt !== yt;
+      if (falta) yt = f;
+      if (mult) { ln = a * yt / s + (1 - a) * lb; seas[j] = g * yt / lb + (1 - g) * s; }
+      else { ln = a * (yt - s) + (1 - a) * lb; seas[j] = g * (yt - lb) + (1 - g) * s; }
+      aj[t] = f;
+      res[t] = falta ? null : yt - f;
+      if (!falta) { sse += res[t] * res[t]; if (f !== 0) { rel += (res[t] / f) * (res[t] / f); nrel++; } }
+      bb = b * (ln - l) + (1 - b) * bb;
+      l = ln;
+      if (++j === m) j = 0;
+    }
+    // estado final: el índice estacional para t = n + h − 1 es seas[(n + h − 1) % m]
+    return { ajustados: aj, residuos: res, sse: sse, varRel: nrel ? rel / nrel : 0,
+      nivel: l, tendencia: bb, estacional: seas, n: n };
+  }
+
+  function hwPronostico(est, m, mult, h) {
+    var out = [];
+    for (var k = 1; k <= h; k++) {
+      var s = est.estacional[(est.n + k - 1) % m], lb = est.nivel + k * est.tendencia;
+      out.push(mult ? lb * s : lb + s);
+    }
+    return out;
+  }
+
+  function aSerie(y) {
+    var x = new Float64Array(y.length);
+    for (var i = 0; i < y.length; i++) x[i] = esNum(y[i]) ? y[i] : NaN;
+    return x;
+  }
+
+  var REJ_A = [0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 0.95];
+  var REJ_B = [0, 0.01, 0.03, 0.06, 0.1, 0.2, 0.35];
+  var REJ_G = [0.01, 0.05, 0.1, 0.2, 0.3, 0.45, 0.6, 0.8];
+  function acotar(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+  /* búsqueda en rejilla gruesa y luego dos rondas finas alrededor del mejor punto */
+  function hwBuscar(x, m, mult) {
+    var ini = hwInicial(x, m, mult);
+    if (!ini) return null;
+    var n = x.length, mejor = { sse: Infinity, a: 0, b: 0, g: 0 }, i, j, k;
+    for (i = 0; i < REJ_A.length; i++)
+      for (j = 0; j < REJ_B.length; j++)
+        for (k = 0; k < REJ_G.length; k++) {
+          var s = hwSSE(x, n, m, mult, REJ_A[i], REJ_B[j], REJ_G[k], ini, mejor.sse);
+          if (s < mejor.sse) mejor = { sse: s, a: REJ_A[i], b: REJ_B[j], g: REJ_G[k] };
+        }
+    if (mejor.sse === Infinity) return null;
+    var pasos = [[0.05, 0.02, 0.05], [0.02, 0.008, 0.02]], OFF = [-1, -0.5, 0, 0.5, 1];
+    for (var r = 0; r < pasos.length; r++) {
+      var c = { a: mejor.a, b: mejor.b, g: mejor.g };
+      for (i = 0; i < 5; i++) {
+        var a = acotar(c.a + OFF[i] * pasos[r][0], 0.005, 0.995);
+        for (j = 0; j < 5; j++) {
+          var b = acotar(c.b + OFF[j] * pasos[r][1], 0, 0.995);
+          for (k = 0; k < 5; k++) {
+            var g = acotar(c.g + OFF[k] * pasos[r][2], 0.001, 0.995);
+            var s2 = hwSSE(x, n, m, mult, a, b, g, ini, mejor.sse);
+            if (s2 < mejor.sse) mejor = { sse: s2, a: a, b: b, g: g };
+          }
+        }
+      }
+    }
+    mejor.ini = ini;
+    return mejor;
+  }
+
+  /* Coeficientes ψ de la representación de innovaciones de ETS(A,A,A) (Hyndman et al.
+     2008), con los parámetros clásicos traducidos a la forma de corrección del error:
+     β* = α·β, γ* = (1 − α)·γ;  ψ_0 = 1,  ψ_j = α + β*·j + γ*·1[j mod m = 0].
+     El error a h pasos es e_h = Σ_{i=0}^{h−1} ψ_i·ε_{n+h−i}. */
+  function hwPsi(H, m, a, b, g) {
+    var be = a * b, ge = (1 - a) * g, psi = [1];
+    for (var j = 1; j < H; j++) psi.push(a + be * j + (j % m === 0 ? ge : 0));
+    return psi;
+  }
+
+  /* varianza del error a h pasos, en unidades de σ²: 1 + Σ_{j=1}^{h−1} ψ_j² */
+  function hwVarFactor(h, m, a, b, g) {
+    var be = a * b, ge = (1 - a) * g, k = Math.floor((h - 1) / m);
+    return 1 + (h - 1) * (a * a + a * be * h + be * be * h * (2 * h - 1) / 6) +
+      ge * k * (2 * a + ge + be * m * (k + 1));
+  }
+
+  /* Varianza de Σ_h p_h·e_h (p_h = pesos; en el multiplicativo p_h ya va multiplicado por
+     el pronóstico del día). Los errores de distintos días comparten las innovaciones, así
+     que no se suman como independientes:
+       Var = σ²·Σ_{i=1}^{H} ( Σ_{h=i}^{H} p_h·ψ_{h−i} )². */
+  function hwVarSuma(pesos, psi, sig2) {
+    var H = pesos.length, v = 0;
+    for (var i = 1; i <= H; i++) {
+      var w = 0;
+      for (var h = i; h <= H; h++) if (pesos[h - 1]) w += pesos[h - 1] * psi[h - i];
+      v += w * w;
+    }
+    return sig2 * v;
+  }
+
+  /* σ² robusto de los errores de un paso: se descartan los residuos con |z robusto| > 3,5
+     (0,6745·|r − mediana|/MAD), para que unos pocos días atípicos no ensanchen todas las
+     bandas, y se promedian los cuadrados del resto (con errores normales casi no cambia). */
+  function varianzaRobusta(r) {
+    if (!r.length) return 0;
+    var med = cuantil(r, 0.5), dev = [], i;
+    for (i = 0; i < r.length; i++) dev.push(Math.abs(r[i] - med));
+    var mad = cuantil(dev, 0.5), sc = 0, c = 0;
+    for (i = 0; i < r.length; i++) {
+      if (mad > 0 && 0.6745 * dev[i] / mad > 3.5) continue;
+      sc += r[i] * r[i]; c++;
+    }
+    return c ? sc / c : 0;
+  }
+
+  /**
+   * Holt-Winters con parámetros fijos (útil para pruebas y para reutilizar un ajuste).
+   * @param {number[]} y
+   * @param {{m?:number, modelo:'aditivo'|'multiplicativo', alfa:number, beta:number,
+   *   gamma:number, h?:number, inicial?:{nivel:number, tendencia:number, estacional:number[]}}} op
+   * @returns {{ajustados:number[], residuos:Array<number|null>, sse:number, rmse:number,
+   *   inicial:Object, nivel:number, tendencia:number, estacional:number[],
+   *   pronostico:number[]}|null}
+   */
+  function holtWintersAjustar(y, op) {
+    var m = op.m || 7, mult = op.modelo === 'multiplicativo', x = aSerie(y);
+    var ini = op.inicial || hwInicial(x, m, mult);
+    if (!ini) return null;
+    var est = hwCorrer(x, m, mult, op.alfa, op.beta, op.gamma, ini);
+    var nv = 0;
+    for (var i = 0; i < est.residuos.length; i++) if (est.residuos[i] !== null) nv++;
+    return { ajustados: est.ajustados, residuos: est.residuos, sse: est.sse,
+      rmse: nv ? Math.sqrt(est.sse / nv) : null,
+      inicial: { nivel: ini.nivel, tendencia: ini.tendencia, estacional: Array.prototype.slice.call(ini.estacional) },
+      nivel: est.nivel, tendencia: est.tendencia, estacional: Array.prototype.slice.call(est.estacional),
+      pronostico: hwPronostico(est, m, mult, op.h || 0) };
+  }
+
+  /**
+   * Pronóstico Holt-Winters con tendencia aditiva y estacionalidad (m = 7 por defecto).
+   * Prueba el modelo aditivo y el multiplicativo (este solo si la serie lo permite),
+   * busca α, β y γ en una rejilla gruesa y luego fina minimizando la suma de errores
+   * cuadráticos de un paso, y elige el de menor RMSE.
+   * Intervalos: σ² robusta de los errores de un paso (sin los residuos con |z robusto| > 3,5)
+   * escalada por horizonte con la fórmula de Hyndman para ETS(A,A,A); en el multiplicativo la
+   * misma fórmula sobre el error relativo (residuo/ajustado), multiplicada por el pronóstico.
+   * Bandas ≥ 0. varSuma(pesos) da la varianza de Σ pesos[h−1]·error_h con la fórmula de
+   * innovaciones (los errores de días distintos están correlacionados): úsese para bandas
+   * de sumas de días (cierre del mes, acumulados).
+   * mape28: ajusta (con nueva búsqueda) sin los últimos 28 días y pronostica esos 28.
+   * @param {number[]} y serie diaria sin huecos (null se trata como dato faltante)
+   * @param {{m?:number, h?:number, validacion?:number}} [opciones] m = 7, h = 14, validacion = 28
+   * @returns {{modelo:string, alfa:number, beta:number, gamma:number, ajustados:number[],
+   *   rmse:number, mape28:number|null, rmseAditivo:number|null, rmseMultiplicativo:number|null,
+   *   pronostico:Array<{h:number, valor:number, sd:number, lo80:number, hi80:number,
+   *   lo95:number, hi95:number}>, sigma2:number, varSuma:function(number[]):number}|null} null si hay menos de 2 temporadas + 2 días. mape28 en %.
+   */
+  function holtWinters(y, opciones) {
+    opciones = opciones || {};
+    var m = opciones.m || 7, H = opciones.h || 14, V = opciones.validacion || 28;
+    var x = aSerie(y), n = x.length;
+    if (n < 2 * m + 2) return null;
+    var cand = [], tipos = ['aditivo', 'multiplicativo'], i;
+    for (i = 0; i < 2; i++) {
+      var mb = hwBuscar(x, m, i === 1);
+      if (mb) cand.push({ modelo: tipos[i], mult: i === 1, b: mb });
+    }
+    if (!cand.length) return null;
+    var nv = 0;
+    for (i = 0; i < n; i++) if (x[i] === x[i]) nv++;
+    var rmA = null, rmM = null, mejor = null;
+    for (i = 0; i < cand.length; i++) {
+      cand[i].rmse = Math.sqrt(cand[i].b.sse / nv);
+      if (cand[i].mult) rmM = cand[i].rmse; else rmA = cand[i].rmse;
+      if (!mejor || cand[i].rmse < mejor.rmse) mejor = cand[i];
+    }
+    var p = mejor.b, est = hwCorrer(x, m, mejor.mult, p.a, p.b, p.g, p.ini);
+    var fc = hwPronostico(est, m, mejor.mult, H);
+    // errores de un paso (relativos en el multiplicativo) con σ² robusto
+    var errs = [];
+    for (i = 0; i < n; i++) {
+      var ri = est.residuos[i];
+      if (ri === null) continue;
+      if (mejor.mult) { if (est.ajustados[i] !== 0) errs.push(ri / est.ajustados[i]); }
+      else errs.push(ri);
+    }
+    var sig2 = varianzaRobusta(errs), psi = hwPsi(H, m, p.a, p.b, p.g);
+    var z80 = normInv(0.9), z95 = normInv(0.975), pron = [];
+    for (var h = 1; h <= H; h++) {
+      var v = fc[h - 1], sd = Math.sqrt(sig2 * hwVarFactor(h, m, p.a, p.b, p.g));
+      if (mejor.mult) sd *= Math.abs(v);
+      pron.push({ h: h, valor: Math.max(0, v), sd: sd,
+        lo80: Math.max(0, v - z80 * sd), hi80: Math.max(0, v + z80 * sd),
+        lo95: Math.max(0, v - z95 * sd), hi95: Math.max(0, v + z95 * sd) });
+    }
+    var esMult = mejor.mult;
+    /* varianza de una suma ponderada de días del pronóstico (pesos[h−1] para el día h) */
+    function varSuma(pesos) {
+      var q = [];
+      for (var hh = 0; hh < Math.min(pesos.length, H); hh++) {
+        var ph = esNum(pesos[hh]) ? pesos[hh] : 0;
+        q.push(esMult ? ph * Math.abs(fc[hh]) : ph);
+      }
+      return hwVarSuma(q, psi, sig2);
+    }
+    // validación fuera de muestra
+    var mape = null;
+    if (n - V >= 2 * m + 2 + m) {
+      var xt = x.subarray(0, n - V), bv = hwBuscar(xt, m, mejor.mult);
+      if (bv) {
+        var ev = hwCorrer(xt, m, mejor.mult, bv.a, bv.b, bv.g, bv.ini);
+        var fv = hwPronostico(ev, m, mejor.mult, V), se = 0, ne = 0;
+        for (i = 0; i < V; i++) {
+          var real = x[n - V + i];
+          if (real === real && real > 0) { se += Math.abs(real - Math.max(0, fv[i])) / real; ne++; }
+        }
+        mape = ne ? se / ne * 100 : null;
+      }
+    }
+    return { modelo: mejor.modelo, alfa: p.a, beta: p.b, gamma: p.g, ajustados: est.ajustados,
+      rmse: mejor.rmse, mape28: mape, rmseAditivo: rmA, rmseMultiplicativo: rmM, pronostico: pron,
+      sigma2: sig2, varSuma: varSuma };
+  }
+
+  function mediana(arr) { return cuantil(arr, 0.5); }
+
+  function indicesSemana(fechasISO, y) {
+    var perfil = perfilSemanal(fechasISO, y), ind = [];
+    for (var d = 0; d < 7; d++) ind.push(perfil[d].indice !== null && perfil[d].indice > 0 ? perfil[d].indice / 100 : 1);
+    return ind;
+  }
+
+  /**
+   * Días atípicos. Esperado = media móvil centrada (28 días; 7 si hay menos de 84 datos)
+   * de la serie desestacionalizada × índice del día de semana / 100. En los extremos,
+   * donde la ventana no está completa, se usa la media de los datos disponibles de la
+   * ventana (al menos la mitad). Residuo = valor − esperado; z robusto =
+   * 0,6745·(residuo − mediana)/MAD; atípico si |z| > 3,5.
+   * @param {string[]} fechasISO  @param {number[]} y
+   * @returns {Array<{i:number, fecha:string, valor:number, esperado:number, z:number,
+   *   dif:number, difPct:number|null}>} en orden cronológico; difPct en %.
+   */
+  function atipicos(fechasISO, y) {
+    var n = y.length, i, j;
+    var nv = limpios(y).length;
+    if (nv < 14) return [];
+    var k = nv >= 84 ? 28 : 7, ind = indicesSemana(fechasISO, y), dw = [], des = [];
+    for (i = 0; i < n; i++) { dw.push(diaSemana(fechasISO[i])); des.push(esNum(y[i]) ? y[i] / ind[dw[i]] : null); }
+    var atras = Math.ceil((k - 1) / 2), adel = k - 1 - atras, esp = [], res = [], idx = [];
+    for (i = 0; i < n; i++) {
+      if (!esNum(y[i])) { esp.push(null); continue; }
+      var s = 0, c = 0;
+      for (j = Math.max(0, i - atras); j <= Math.min(n - 1, i + adel); j++) if (des[j] !== null) { s += des[j]; c++; }
+      if (c < k / 2) { esp.push(null); continue; }
+      var e = s / c * ind[dw[i]];
+      esp.push(e); res.push(y[i] - e); idx.push(i);
+    }
+    if (res.length < 7) return [];
+    var med = mediana(res), dev = [];
+    for (i = 0; i < res.length; i++) dev.push(Math.abs(res[i] - med));
+    var mad = mediana(dev), out = [];
+    if (!(mad > 0)) return [];
+    for (i = 0; i < res.length; i++) {
+      var z = 0.6745 * (res[i] - med) / mad;
+      if (Math.abs(z) > 3.5) {
+        var ii = idx[i];
+        out.push({ i: ii, fecha: fechasISO[ii], valor: y[ii], esperado: esp[ii], z: z,
+          dif: y[ii] - esp[ii], difPct: esp[ii] ? (y[ii] - esp[ii]) / esp[ii] * 100 : null });
+      }
+    }
+    return out;
+  }
+
+  /* Base ortonormal (Gram-Schmidt modificado) de {1, t, t²} sobre las posiciones t, para
+     descontar una tendencia suave (recta con curvatura). */
+  function baseTendencia(pos, grado) {
+    var n = pos.length, tm = media(pos), esc = 0, Q = [], i, j, c;
+    for (i = 0; i < n; i++) esc = Math.max(esc, Math.abs(pos[i] - tm));
+    esc = esc || 1;
+    for (c = 0; c <= grado; c++) {
+      var v = new Float64Array(n);
+      for (i = 0; i < n; i++) v[i] = Math.pow((pos[i] - tm) / esc, c);
+      for (j = 0; j < Q.length; j++) {
+        var pr = 0;
+        for (i = 0; i < n; i++) pr += v[i] * Q[j][i];
+        for (i = 0; i < n; i++) v[i] -= pr * Q[j][i];
+      }
+      var nr = 0;
+      for (i = 0; i < n; i++) nr += v[i] * v[i];
+      nr = Math.sqrt(nr);
+      if (!(nr > 1e-9)) return null;
+      for (i = 0; i < n; i++) v[i] /= nr;
+      Q.push(v);
+    }
+    return Q;
+  }
+
+  /* residuos de v sin la tendencia (proyección sobre la base Q); devuelve su suma de cuadrados */
+  function sinTendencia(v, Q, out) {
+    var n = v.length, i, j, ss = 0;
+    for (i = 0; i < n; i++) out[i] = v[i];
+    for (j = 0; j < Q.length; j++) {
+      var pr = 0;
+      for (i = 0; i < n; i++) pr += v[i] * Q[j][i];
+      for (i = 0; i < n; i++) out[i] -= pr * Q[j][i];
+    }
+    for (i = 0; i < n; i++) ss += out[i] * out[i];
+    return ss;
+  }
+
+  /* Barrido del punto de cambio sobre los residuos u de la tendencia (Frisch-Waugh):
+     agregar el escalón D_k = 1[i ≥ k] reduce la suma de cuadrados en U_k²/q_k, con
+     U_k = Σ_{i≥k} u_i y q_k = (n − k) − Σ_j (Σ_{i≥k} Q_j[i])² (parte del escalón que la
+     tendencia no explica). */
+  function barridoCambio(u, Q, MIN) {
+    var n = u.length, p = Q.length, U = 0, T = new Float64Array(p), k, j;
+    var mejor = { k: -1, gan: -Infinity, U: 0, q: 0 };
+    for (k = n - 1; k >= MIN; k--) {
+      U += u[k];
+      for (j = 0; j < p; j++) T[j] += Q[j][k];
+      if (k > n - MIN) continue;
+      var q = n - k;
+      for (j = 0; j < p; j++) q -= T[j] * T[j];
+      if (!(q > 1e-9)) continue;
+      var gan = U * U / q;
+      if (gan > mejor.gan) mejor = { k: k, gan: gan, U: U, q: q };
+    }
+    return mejor;
+  }
+
+  /**
+   * Punto único de cambio de nivel en la serie desestacionalizada (y / índice semanal),
+   * descontada una tendencia suave (recta con curvatura, MCO): un crecimiento gradual no
+   * cuenta como cambio de nivel. Elige el corte (al menos 21 días por lado) que más
+   * reduce la suma de cuadrados al agregar un escalón a la tendencia. Como el corte se
+   * elige buscando el máximo, una prueba t común daría falsos positivos; el valor p sale
+   * de un bootstrap por bloques circulares (bloques de ≥ 14 días, que conservan la
+   * autocorrelación y el patrón semanal) de los residuos, repitiendo la búsqueda en cada
+   * réplica (semilla fija: resultado determinista). Hay cambio si p < 0,01 y el salto es
+   * de al menos 5 %.
+   * @param {string[]} fechasISO  @param {number[]} y
+   * @param {{replicas?:number, alfa?:number, efectoMin?:number}} [opciones]
+   *   replicas = 299, alfa = 0,01, efectoMin = 0,05.
+   * @returns {{hay:boolean, i:number|null, fecha:string|null, mediaAntes:number|null,
+   *   mediaDespues:number|null, salto:number|null, saltoPct:number|null,
+   *   nivelAntes:number|null, nivelDespues:number|null, nivel:Array<number|null>|null,
+   *   p:number|null}}
+   *   i = primer índice del tramo nuevo; mediaAntes/mediaDespues = medias de cada tramo y
+   *   nivelAntes/nivelDespues = nivel ajustado (tendencia + escalón) justo antes y justo
+   *   después del corte, todo en la escala de la venta diaria desestacionalizada;
+   *   salto = nivelDespues − nivelAntes; saltoPct en %; nivel = tendencia + escalón ajustados
+   *   para cada índice de y (null donde y falta).
+   */
+  function puntoCambio(fechasISO, y, opciones) {
+    opciones = opciones || {};
+    var nada = { hay: false, i: null, fecha: null, mediaAntes: null, mediaDespues: null,
+      salto: null, saltoPct: null, nivelAntes: null, nivelDespues: null, nivel: null, p: null };
+    var B = opciones.replicas || 299, ALFA = opciones.alfa || 0.01;
+    var EF = esNum(opciones.efectoMin) ? opciones.efectoMin : 0.05;
+    var MIN = 21, ind = indicesSemana(fechasISO, y), d = [], pos = [], i, j;
+    for (i = 0; i < y.length; i++) if (esNum(y[i])) { d.push(y[i] / ind[diaSemana(fechasISO[i])]); pos.push(i); }
+    var n = d.length;
+    if (n < 2 * MIN) return nada;
+    var Q = baseTendencia(pos, 2);
+    if (!Q) return nada;
+    var u = new Float64Array(n), ss = sinTendencia(d, Q, u);
+    if (!(ss > 0)) return nada;
+    var best = barridoCambio(u, Q, MIN);
+    if (best.k < 0) return nada;
+    var stat = best.gan / ss;
+    // bootstrap por bloques circulares de los residuos (semilla fija)
+    var L = Math.max(14, Math.round(1.5 * Math.pow(n, 1 / 3))), sem = 20261120, mayores = 0;
+    var us = new Float64Array(n), ur = new Float64Array(n);
+    function azar() { sem = (sem * 16807) % 2147483647; return sem / 2147483647; }
+    for (var r = 0; r < B; r++) {
+      for (i = 0; i < n;) {
+        var ini = Math.floor(azar() * n);
+        for (j = 0; j < L && i < n; j++, i++) us[i] = u[(ini + j) % n];
+      }
+      var ssr = sinTendencia(us, Q, ur);
+      if (!(ssr > 0)) continue;
+      var br = barridoCambio(ur, Q, MIN);
+      if (br.k >= 0 && br.gan / ssr >= stat) mayores++;
+    }
+    var p = (1 + mayores) / (B + 1);
+    // ajuste con el escalón: d = tendencia + δ·D_k, δ = U_k/q_k (Frisch-Waugh)
+    var k = best.k, delta = best.U / best.q, Dk = new Float64Array(n), resto = new Float64Array(n);
+    for (i = 0; i < n; i++) { Dk[i] = i >= k ? delta : 0; resto[i] = d[i] - Dk[i]; }
+    var tend = new Float64Array(n);
+    sinTendencia(resto, Q, tend); // tend = residuo; la tendencia ajustada es resto − tend
+    var antes = resto[k] - tend[k], despues = antes + delta;
+    var pct = antes > 0 ? delta / antes * 100 : null, s1 = 0, s2 = 0;
+    var nivel = new Array(y.length);
+    for (i = 0; i < y.length; i++) nivel[i] = null;
+    for (i = 0; i < n; i++) {
+      if (i < k) s1 += d[i]; else s2 += d[i];
+      nivel[pos[i]] = resto[i] - tend[i] + Dk[i];
+    }
+    return { hay: p < ALFA && pct !== null && Math.abs(pct) >= EF * 100, i: pos[k], fecha: fechasISO[pos[k]],
+      mediaAntes: s1 / k, mediaDespues: s2 / (n - k), salto: delta, saltoPct: pct,
+      nivelAntes: antes, nivelDespues: despues, nivel: nivel, p: p };
+  }
+
+  /**
+   * Proyección del cierre del mes: lo vendido más el pronóstico de los días restantes.
+   * Varianza del resto, en este orden de preferencia:
+   *  1. datos.varianza, si viene;
+   *  2. datos.modelo.varSuma (el resultado de holtWinters) con el día h de cada elemento
+   *     y su peso (1 por defecto; menor si solo falta una parte del día): fórmula de
+   *     innovaciones, que tiene en cuenta que los errores de días seguidos van juntos;
+   *  3. si no hay modelo, la aproximación con días independientes y
+   *     σ de cada día ≈ (hi95 − lo95)/(2·1,96), que subestima el rango.
+   * La banda inferior nunca baja de lo vendido.
+   * @param {{vendido:number, pronosticoDias:Array<{valor:number, h?:number, peso?:number,
+   *   lo80?:number, hi80?:number, lo95?:number, hi95?:number}>, modelo?:Object,
+   *   varianza?:number}} datos
+   * @returns {{vendido:number, resto:number, total:number, sd:number, lo80:number,
+   *   hi80:number, lo95:number, hi95:number}}
+   */
+  function proyeccionMes(datos) {
+    var vendido = esNum(datos.vendido) ? datos.vendido : 0, dias = datos.pronosticoDias || [];
+    var resto = 0, v = 0, z95 = normInv(0.975), z80 = normInv(0.9), i;
+    for (i = 0; i < dias.length; i++) resto += dias[i].valor;
+    var conH = dias.length > 0;
+    for (i = 0; i < dias.length; i++) if (!(esNum(dias[i].h) && dias[i].h >= 1)) conH = false;
+    if (esNum(datos.varianza)) v = Math.max(0, datos.varianza);
+    else if (datos.modelo && typeof datos.modelo.varSuma === 'function' && conH) {
+      var pesos = [];
+      for (i = 0; i < dias.length; i++) {
+        var h = Math.round(dias[i].h);
+        while (pesos.length < h) pesos.push(0);
+        pesos[h - 1] += esNum(dias[i].peso) ? dias[i].peso : 1;
+      }
+      v = datos.modelo.varSuma(pesos);
+    } else {
+      for (i = 0; i < dias.length; i++) {
+        var sd = (dias[i].hi95 - dias[i].lo95) / (2 * z95);
+        if (esNum(sd)) v += sd * sd;
+      }
+    }
+    var tot = vendido + resto, sdt = Math.sqrt(v);
+    return { vendido: vendido, resto: resto, total: tot, sd: sdt,
+      lo80: Math.max(vendido, tot - z80 * sdt), hi80: tot + z80 * sdt,
+      lo95: Math.max(vendido, tot - z95 * sdt), hi95: tot + z95 * sdt };
+  }
+
+  return {
+    // utilidades
+    suma: suma, media: media, normInv: normInv, tCdf: tCdf, tInv: tInv,
+    diaSemana: diaSemana, sumarDias: sumarDias, difDias: difDias,
+    // descriptiva
+    cuantil: cuantil, basicos: basicos, mediaMovil: mediaMovil, histograma: histograma,
+    variacion: variacion, perfilSemanal: perfilSemanal, pareto: pareto, hhi: hhi,
+    descomponerVariacion: descomponerVariacion,
+    // relación y regresión
+    pearson: pearson, correlacionMatriz: correlacionMatriz, regresionLineal: regresionLineal,
+    mco: mco, tendenciaConSemana: tendenciaConSemana,
+    // series de tiempo
+    acf: acf, holtWinters: holtWinters, holtWintersAjustar: holtWintersAjustar,
+    atipicos: atipicos, puntoCambio: puntoCambio, proyeccionMes: proyeccionMes
+  };
+})();
+
+if (typeof module !== 'undefined' && module.exports) module.exports = Est;
+</script>
+<!-- ===== Pestañas Histórico, Sucursales y Pronóstico (historico.js) ===== -->
+<script>
+/*
+ * historico.js — Pestañas Histórico, Sucursales y Pronóstico de «Facturación de hoy».
+ *
+ * - La pestaña «Hoy» es la vista original y no se toca: aquí solo se oculta o se muestra.
+ * - El histórico se pide al abrir una pestaña que lo necesita (API?formato=historico&k=…),
+ *   se guarda en memoria y se refresca si la página lleva abierta más de 1 hora.
+ *   Mientras el servidor responda faltan > 0, se vuelve a pedir a los ~3 s y se dibuja lo parcial.
+ * - Chart.js 4.4.1 se carga perezosamente desde cdnjs, solo al abrir una pestaña con gráficas.
+ * - En modo prueba (window.DATOS_PRUEBA) el histórico sale de window.historicoPrueba().
+ * - Requiere Est (estadistica.js).
+ */
+(function () {
+  'use strict';
+
+  var HIST_DESDE = '2025-01-01';
+  var URL_CHART = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+  var UNA_HORA = 3600000;
+  var ERR_SERVIDOR = 'el servidor no respondió correctamente; intente de nuevo en unos minutos';
+  var ERR_RED = 'no hubo conexión con el servidor; revise la conexión e intente de nuevo';
+  var C = { azul: '#1D4ED8', azul2: '#4F7BFF', naranja: '#EB6834', agua: '#1BAF7A', gris: '#9CA3AF',
+    tinta: '#14161F', sec: '#6E7180', borde: '#ECEDF2', rejilla: '#EEF0F4', verde: '#0A8F4E', rojo: '#D1173D' };
+  var MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  var DSEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  var DSEM_C = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  var ORDEN_SEM = [1, 2, 3, 4, 5, 6, 0];
+  var PERIODOS = [['30', '30 días'], ['90', '90 días'], ['365', '12 meses'], ['todo', 'Todo']];
+  var PESTANAS = ['hoy', 'historico', 'sucursales', 'pronostico'];
+
+  var S = {
+    tab: 'hoy', periodo: '90', iva: true,
+    datos: null, prep: null, cache: {}, cargando: false, error: null, cargadoEn: 0, cargadoPara: null, intentoEn: 0, timer: null,
+    hoy: null, charts: [], orden: { col: 'venta', dir: -1 }, sucSel: null, ultimoCalculoMs: 0
+  };
+
+  /* ============================== formato ============================== */
+
+  function num(x, dec) {
+    dec = dec || 0;
+    return Number(x || 0).toLocaleString('es-VE', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+  function usd(x, dec) { return (x < 0 ? '−' : '') + '$' + num(Math.abs(x), dec ? 2 : 0); }
+  function usdCorto(x) {
+    var a = Math.abs(x), s = x < 0 ? '−' : '';
+    // Sin decimal cuando es ,0: «$5 mil» junto a «$10 mil», no «$5,0 mil».
+    if (a >= 1e6) return s + '$' + num(a / 1e6, 1).replace(/,0$/, '') + ' M';
+    if (a >= 1000) return s + '$' + num(a / 1000, a >= 10000 ? 0 : 1).replace(/,0$/, '') + ' mil';
+    return s + '$' + num(a);
+  }
+  function rangoCorto(lo, hi) {
+    if (lo >= 1000 && hi >= 1000) return '$' + num(lo / 1000, hi < 10000 ? 1 : 0) + '–' + num(hi / 1000, hi < 10000 ? 1 : 0) + ' mil';
+    return usd(lo) + '–' + usd(hi);
+  }
+  function pct(x, dec) { return num(x, dec === undefined ? 1 : dec) + ' %'; }
+  function pctVar(p) { var a = Math.abs(p); return num(a, a < 1 ? 1 : 0) + ' %'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fechaDM(f) { return +f.slice(8, 10) + '/' + +f.slice(5, 7); }
+  function fechaDMA(f) { return f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4); }
+  function fechaLarga(f) { return DSEM[Est.diaSemana(f)] + ' ' + fechaDM(f) + '/' + f.slice(0, 4); }
+  function mesCorto(ym) { return MESES[+ym.slice(5, 7) - 1] + ' ' + ym.slice(2, 4); }
+  function finDeMes(f) {
+    var y = +f.slice(0, 4), m = +f.slice(5, 7);
+    return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+  }
+  function esNum(v) { return typeof v === 'number' && isFinite(v); }
+
+  /* Texto de una variación: «+$1.234 · +12 %». tipo: usd | usd2 | ent | num2 | pp */
+  function textoVar(dif, p, tipo) {
+    if (esCero(dif, p, tipo)) { dif = 0; p = 0; }
+    var s = dif > 0 ? '+' : dif < 0 ? '−' : '', a = Math.abs(dif), m;
+    if (tipo === 'usd2') m = '$' + num(a, 2);
+    else if (tipo === 'ent') m = num(a);
+    else if (tipo === 'num2') m = num(a, 2);
+    else if (tipo === 'pp') return s + num(a, 1) + ' pts';
+    else m = '$' + num(a);
+    if (/^\$?[0,]+$/.test(m) && esNum(p) && p !== 0) return (p > 0 ? '+' : '−') + pctVar(p);
+    return s + m + (p !== null && p !== undefined && isFinite(p) ? ' · ' + (p > 0 ? '+' : p < 0 ? '−' : '') + pctVar(p) : '');
+  }
+  /* Una variación que se muestra como 0 (por ejemplo −0,004 unidades) no lleva signo ni color. */
+  function esCero(dif, p, tipo) {
+    var dec = tipo === 'usd2' || tipo === 'num2' ? 2 : tipo === 'pp' ? 1 : 0;
+    var p0 = !(esNum(p)) || Math.abs(p) < 0.05;
+    return Math.abs(dif) < 0.5 * Math.pow(10, -dec) && p0;
+  }
+  function chip(act, ant, tipo, neutro) {
+    if (!esNum(act) || !esNum(ant)) return '<span class="hchip">sin comparación</span>';
+    var v = Est.variacion(act, ant);
+    var cero = esCero(v.dif, tipo === 'pp' ? null : v.pct, tipo);
+    var cls = neutro || cero ? '' : v.dif > 0 ? ' mas' : v.dif < 0 ? ' menos' : '';
+    return '<span class="hchip' + cls + '">' + textoVar(v.dif, tipo === 'pp' ? null : v.pct, tipo) + '</span>';
+  }
+
+  /* ============================== datos ============================== */
+
+  function preparar(d) {
+    var idx = {};
+    (d.campos || ['fecha', 'venta', 'ventaSinIva', 'tk', 'un', 'convVenta', 'convTk', 'convUn', 'sucursales'])
+      .forEach(function (c, i) { idx[c] = i; });
+    var dias = (d.dias || []).slice().sort(function (a, b) { return a[idx.fecha] < b[idx.fecha] ? -1 : 1; });
+    if (!dias.length) return null;
+    var f0 = dias[0][idx.fecha], f1 = dias[dias.length - 1][idx.fecha], N = Est.difDias(f0, f1) + 1;
+    var P = { N: N, f0: f0, f1: f1, fechas: new Array(N), v: nulos(N), v0: nulos(N), tk: nulos(N), un: nulos(N),
+      cv: nulos(N), ctk: nulos(N), cun: nulos(N), suc: {}, sucTk: {}, primera: {}, nombres: d.sucursales || {} };
+    var i;
+    for (i = 0; i < N; i++) P.fechas[i] = Est.sumarDias(f0, i);
+    dias.forEach(function (r) {
+      var j = Est.difDias(f0, r[idx.fecha]);
+      P.v[j] = +r[idx.venta] || 0; P.v0[j] = +r[idx.ventaSinIva] || 0;
+      P.tk[j] = +r[idx.tk] || 0; P.un[j] = +r[idx.un] || 0;
+      P.cv[j] = +r[idx.convVenta] || 0; P.ctk[j] = +r[idx.convTk] || 0; P.cun[j] = +r[idx.convUn] || 0;
+      (r[idx.sucursales] || []).forEach(function (s) {
+        var id = String(s[0]);
+        if (!P.suc[id]) { P.suc[id] = nulos(N); P.sucTk[id] = nulos(N); }
+        P.suc[id][j] = +s[1] || 0; P.sucTk[id][j] = +s[2] || 0;
+        if (P.primera[id] === undefined || j < P.primera[id]) P.primera[id] = j;
+      });
+    });
+    // Desde que una sucursal aparece, un día con datos de la empresa en que no aparece cuenta como 0.
+    Object.keys(P.suc).forEach(function (id) {
+      for (var j = P.primera[id]; j < N; j++) if (P.suc[id][j] === null && P.v[j] !== null) { P.suc[id][j] = 0; P.sucTk[id][j] = 0; }
+      if (!P.nombres[id]) P.nombres[id] = 'Sucursal ' + id;
+    });
+    // Proporción sin IVA / con IVA de cada día (para estimar sucursales y convenio sin IVA)
+    P.r = nulos(N);
+    for (i = 0; i < N; i++) if (P.v[i] !== null) P.r[i] = P.v[i] > 0 && P.v0[i] > 0 ? P.v0[i] / P.v[i] : 1 / 1.015;
+    return P;
+  }
+  function nulos(n) { var a = new Array(n); for (var i = 0; i < n; i++) a[i] = null; return a; }
+
+  /* Serie de venta según el interruptor de IVA (y de convenio y sucursales, estimadas sin IVA). */
+  function serie(nombre, id) {
+    var P = S.prep, k = nombre + '|' + (id || '') + '|' + S.iva;
+    if (S.cache[k]) return S.cache[k];
+    var out;
+    if (nombre === 'venta') out = S.iva ? P.v : P.v0;
+    else if (nombre === 'conv') out = S.iva ? P.cv : P.cv.map(function (x, i) { return x === null ? null : x * P.r[i]; });
+    else if (nombre === 'farm') {
+      var vv = serie('venta'), cc = serie('conv');
+      out = vv.map(function (x, i) { return x === null ? null : x - cc[i]; });
+    } else if (nombre === 'suc') {
+      out = S.iva ? P.suc[id] : P.suc[id].map(function (x, i) { return x === null ? null : x * (P.r[i] || 1 / 1.015); });
+    } else if (nombre === 'abiertos') { // venta de los días con ventas (0 → null), para estadísticas y modelos
+      out = serie('venta').map(function (x) { return x > 0 ? x : null; });
+    }
+    S.cache[k] = out;
+    return out;
+  }
+  function memo(k, fn) { k = k + '|' + S.iva; if (!(k in S.cache)) S.cache[k] = fn(); return S.cache[k]; }
+
+  function sumaRango(arr, a, b) { var s = 0; for (var i = Math.max(0, a); i <= b; i++) if (esNum(arr[i])) s += arr[i]; return s; }
+  function diasConDatos(a, b) { var n = 0; for (var i = Math.max(0, a); i <= b; i++) if (S.prep.v[i] !== null) n++; return n; }
+  function cubierto(a, b) { return a >= 0 && b >= a && diasConDatos(a, b) >= 0.9 * (b - a + 1); }
+
+  /* Ventana del período elegido, del anterior de igual largo y del mismo período del año anterior (−364 días).
+     «12 meses» usa 364 días (52 semanas): así el año anterior conserva el día de semana sin compartir días. */
+  function ventana() {
+    var N = S.prep.N, L = S.periodo === 'todo' ? N : Math.min(N, S.periodo === '365' ? 364 : +S.periodo);
+    var b = N - 1, a = N - L;
+    var w = { a: a, b: b, L: L, ant: null, anio: null };
+    if (S.periodo !== 'todo' && cubierto(a - L, a - 1)) w.ant = { a: a - L, b: a - 1 };
+    if (cubierto(a - 364, b - 364)) w.anio = { a: a - 364, b: b - 364 };
+    return w;
+  }
+
+  /* Indicadores de un rango de días. */
+  function indicadores(a, b) {
+    var P = S.prep, v = serie('venta'), cv = serie('conv'), fa = serie('farm'), abiertos = [], fechas = [];
+    for (var i = a; i <= b; i++) if (v[i] > 0) { abiertos.push(v[i]); fechas.push(P.fechas[i]); }
+    var bs = Est.basicos(abiertos), tk = sumaRango(P.tk, a, b), un = sumaRango(P.un, a, b), venta = sumaRango(v, a, b);
+    var ctk = sumaRango(P.ctk, a, b), cven = sumaRango(cv, a, b), fven = sumaRango(fa, a, b);
+    return {
+      venta: venta, dias: abiertos.length, media: bs.media, mediana: bs.mediana, desv: bs.desv, cv: bs.cv !== null ? bs.cv * 100 : null,
+      mejor: bs.n > 0 && bs.iMax !== null ? { v: abiertos[bs.iMax], f: fechas[bs.iMax] } : null,
+      peor: bs.n > 0 && bs.iMin !== null ? { v: abiertos[bs.iMin], f: fechas[bs.iMin] } : null,
+      tk: tk, ticket: tk ? venta / tk : null, upt: tk ? un / tk : null, precio: un ? venta / un : null, un: un,
+      conv: { venta: cven, tk: ctk, ticket: ctk ? cven / ctk : null, part: venta ? cven / venta * 100 : null },
+      farm: { venta: fven, tk: tk - ctk, ticket: tk - ctk ? fven / (tk - ctk) : null, part: venta ? fven / venta * 100 : null }
+    };
+  }
+
+  /* ============================== carga ============================== */
+
+  function clave() {
+    if (typeof window.clave === 'function') return window.clave();
+    var m = location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/);
+    var k = m ? m[1] : '';
+    try { k = decodeURIComponent(k); } catch (e) {}
+    return k.replace(/[^0-9a-zA-Z]/g, '');
+  }
+
+  function errorPropio(m) { var e = new Error(m); e.propio = true; return e; }
+
+  function pedirHistorico() {
+    if (S.cargando) return;
+    clearTimeout(S.timer);
+    S.cargando = true;
+    S.intentoEn = Date.now();
+    var p;
+    if (window.DATOS_PRUEBA && typeof window.historicoPrueba === 'function') {
+      p = new Promise(function (ok) { setTimeout(function () { ok({ ok: true, datos: window.historicoPrueba() }); }, 0); });
+    } else {
+      var k = clave();
+      if (!k) p = Promise.reject(errorPropio('el link no trae la clave; use el botón del reporte diario'));
+      else p = fetch(window.API + '?formato=historico&k=' + encodeURIComponent(k), { cache: 'no-store' })
+        .then(function (r) {
+          // Un error del servidor (500, cuota, tiempo agotado, inicio de sesión) llega como HTML: no se muestra el texto técnico.
+          if (!r.ok) throw errorPropio(ERR_SERVIDOR);
+          return r.text().then(function (t) {
+            try { return JSON.parse(t); } catch (e) { throw errorPropio(ERR_SERVIDOR); }
+          });
+        }, function () { throw errorPropio(ERR_RED); });
+    }
+    p.then(function (r) {
+      S.cargando = false;
+      if (!r || !r.ok || !r.datos) throw errorPropio(r && r.error === 'Link no válido' ? 'el link no es válido' : (r && typeof r.error === 'string' && r.error) || ERR_SERVIDOR);
+      S.error = null;
+      S.datos = r.datos;
+      S.prep = preparar(r.datos);
+      S.cache = {};
+      S.cargadoEn = Date.now();
+      S.cargadoPara = S.hoy && S.hoy.hoy ? S.hoy.hoy : null;
+      // Si el avance se detiene (Plade caído o en pausa), se espacian los pedidos: 3 s, 6 s, 12 s… hasta 2 min.
+      if (r.datos.faltan > 0) {
+        S.sinAvance = (S.faltanAntes != null && r.datos.faltan >= S.faltanAntes) ? (S.sinAvance || 0) + 1 : 0;
+        S.timer = setTimeout(pedirHistorico, Math.min(120000, 3000 * Math.pow(2, S.sinAvance)));
+      } else S.sinAvance = 0;
+      S.faltanAntes = r.datos.faltan;
+      dibujar();
+    }).catch(function (e) {
+      S.cargando = false;
+      // Solo se muestran los mensajes propios; cualquier otro fallo (por ejemplo, de cálculo) se resume.
+      S.error = e && e.propio ? e.message : ERR_SERVIDOR;
+      // Con datos parciales se sigue intentando; sin datos se ofrece reintentar.
+      if (S.datos && S.datos.faltan > 0) S.timer = setTimeout(pedirHistorico, 10000);
+      dibujar();
+    });
+  }
+
+  var promesaChart = null;
+  function cargarChart() {
+    if (window.Chart) { configurarChart(); return Promise.resolve(); }
+    if (promesaChart) return promesaChart;
+    promesaChart = new Promise(function (ok, mal) {
+      var s = document.createElement('script');
+      s.src = URL_CHART;
+      s.async = true;
+      s.onload = function () { configurarChart(); ok(); };
+      s.onerror = function () { promesaChart = null; s.remove(); mal(new Error('No se pudo cargar la librería de gráficas')); };
+      document.head.appendChild(s);
+    });
+    return promesaChart;
+  }
+  var chartListo = false;
+  function configurarChart() {
+    if (chartListo || !window.Chart) return;
+    chartListo = true;
+    var D = Chart.defaults;
+    D.font.family = "Inter,'Segoe UI',Roboto,Arial,sans-serif";
+    D.font.size = 11;
+    D.color = C.sec;
+    D.locale = 'es-VE';
+    D.animation = false;
+    D.responsive = true;
+    D.maintainAspectRatio = false;
+    D.plugins.legend.display = false;
+    D.plugins.tooltip.backgroundColor = 'rgba(20,22,31,.92)';
+    D.plugins.tooltip.padding = 9;
+    D.plugins.tooltip.cornerRadius = 8;
+    D.plugins.tooltip.boxPadding = 4;
+    D.plugins.tooltip.titleFont = { weight: '600', size: 12 };
+    D.plugins.tooltip.bodyFont = { size: 12 };
+    D.elements.line.borderWidth = 2;
+    D.elements.point.radius = 0;
+    D.elements.point.hoverRadius = 4;
+  }
+
+  /* ============================== pestañas ============================== */
+
+  function iniciar() {
+    var barra = document.getElementById('pestanas');
+    if (!barra) return;
+    // Se guarda la última respuesta del modo json (para el reparto convenio/farmacia de hoy y la proyección del mes).
+    var pintarOriginal = window.pintar;
+    if (typeof pintarOriginal === 'function') {
+      window.pintar = function (d) { S.hoy = d; var r = pintarOriginal.apply(this, arguments); alActualizarHoy(); return r; };
+    }
+    if (window.DATOS_PRUEBA) S.hoy = window.DATOS_PRUEBA;
+    barra.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-tab]');
+      if (b) mostrar(b.getAttribute('data-tab'));
+    });
+    try {
+      var p = localStorage.getItem('fact.periodo'); if (p && /^(30|90|365|todo)$/.test(p)) S.periodo = p;
+      if (localStorage.getItem('fact.iva') === '0') S.iva = false;
+    } catch (e) {}
+    var t = 'hoy';
+    try { t = localStorage.getItem('fact.pestana') || 'hoy'; } catch (e) {}
+    if (PESTANAS.indexOf(t) < 0) t = 'hoy';
+    mostrar(t, true);
+    var vista = document.getElementById('vistaHist');
+    vista.addEventListener('click', alTocar);
+    vista.addEventListener('change', alCambiar);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && S.tab !== 'hoy' && S.cargadoEn && Date.now() - S.cargadoEn > UNA_HORA) pedirHistorico();
+    });
+  }
+
+  function alActualizarHoy() {
+    // Corre con cada recarga del modo json (cada minuto).
+    // 1) Con la página abierta en una pestaña del histórico, se refresca si pasó más de 1 hora o cambió el día.
+    //    Si un intento falla, se espera al menos 5 minutos antes del siguiente.
+    if (S.tab !== 'hoy' && !S.cargando && S.cargadoEn && Date.now() - S.intentoEn > 300000) {
+      var dia = S.hoy && S.hoy.hoy;
+      var cambioDia = dia && (S.cargadoPara ? dia !== S.cargadoPara : S.datos && S.datos.hasta && dia > Est.sumarDias(S.datos.hasta, 1));
+      if (Date.now() - S.cargadoEn > UNA_HORA || cambioDia) { pedirHistorico(); return; }
+    }
+    // 2) Solo se redibuja lo que usa el dato de hoy y ya está pintado (sin recalcular todo cada minuto).
+    if (!S.prep || !window.Chart) return;
+    if (S.tab === 'pronostico') dibujar(true);
+    else if (S.tab === 'historico') {
+      var vista = document.getElementById('vistaHist'), viejo = vista && vista.querySelector('.hrep'), nuevo = repartoHoy();
+      if (viejo && nuevo) viejo.outerHTML = nuevo;
+      else if (viejo || nuevo) dibujar(true);
+    }
+  }
+
+  function mostrar(t, inicial) {
+    S.tab = t;
+    try { localStorage.setItem('fact.pestana', t); } catch (e) {}
+    var botones = document.querySelectorAll('#pestanas button');
+    for (var i = 0; i < botones.length; i++) {
+      var act = botones[i].getAttribute('data-tab') === t;
+      botones[i].className = act ? 'activa' : '';
+      botones[i].setAttribute('aria-selected', act ? 'true' : 'false');
+    }
+    var vista = document.getElementById('vistaHist'), cont = document.getElementById('contenido');
+    destruirGraficas();
+    if (t === 'hoy') { vista.hidden = true; vista.innerHTML = ''; cont.style.display = ''; return; }
+    cont.style.display = 'none';
+    vista.hidden = false;
+    if ((!S.datos && !S.cargando) || (S.cargadoEn && Date.now() - S.cargadoEn > UNA_HORA && !S.cargando)) pedirHistorico();
+    if (!inicial) window.scrollTo(0, 0);
+    dibujar();
+  }
+
+  function destruirGraficas() {
+    S.charts.forEach(function (c) { try { c.destroy(); } catch (e) {} });
+    S.charts = [];
+  }
+
+  /* Dibuja la pestaña visible con el estado actual (carga, avance, error o datos). */
+  function dibujar(silencioso) {
+    if (S.tab === 'hoy') return;
+    var vista = document.getElementById('vistaHist');
+    if (!S.prep) {
+      destruirGraficas();
+      if (S.error && !S.cargando) {
+        vista.innerHTML = '<div class="hestado err">No pude traer el histórico: ' + esc(S.error) + '.<br>' +
+          '<button type="button" data-accion="reintentar">Reintentar</button></div>';
+      } else if (S.datos && S.datos.faltan > 0) {
+        // Llegó una respuesta sin días todavía: se muestra el avance real de la carga.
+        vista.innerHTML = avance() + '<div class="hestado">Todavía no hay días con ventas cargados; se mostrarán apenas lleguen.</div>';
+      } else if (S.datos) {
+        vista.innerHTML = '<div class="hestado">Todavía no hay días con ventas en el histórico.</div>' +
+          (S.error ? '<div class="haviso">No pude actualizar el histórico: ' + esc(S.error) + '.</div>' : '');
+      } else {
+        vista.innerHTML = '<div class="hestado"><span class="hgiro"></span>Cargando el histórico de Plade…</div>';
+      }
+      return;
+    }
+    if (!window.Chart) {
+      if (!silencioso) {
+        destruirGraficas();
+        vista.innerHTML = avance() + '<div class="hestado"><span class="hgiro"></span>Preparando las gráficas…</div>';
+      }
+      cargarChart().then(function () { dibujar(); }, function (e) {
+        vista.innerHTML = '<div class="hestado err">' + esc(e.message) + '. Revise la conexión.<br>' +
+          '<button type="button" data-accion="reintentar-graficas">Reintentar</button></div>';
+      });
+      return;
+    }
+    var y = window.scrollY;
+    destruirGraficas();
+    var t0 = performance.now(), graficas = [], html;
+    if (S.tab === 'historico') html = vistaHistorico(graficas);
+    else if (S.tab === 'sucursales') html = vistaSucursales(graficas);
+    else html = vistaPronostico(graficas);
+    vista.innerHTML = avance() + html;
+    graficas.forEach(function (g) {
+      var cv = document.getElementById(g.id);
+      (g.cfg.data.datasets || []).forEach(function (d) { if (d.backgroundColor === undefined && typeof d.borderColor === 'string') d.backgroundColor = d.borderColor; });
+      if (cv) S.charts.push(new Chart(cv, g.cfg));
+    });
+    if (S.tab === 'historico') { var cal = vista.querySelector('.hcal'); if (cal) cal.scrollLeft = cal.scrollWidth; }
+    S.ultimoCalculoMs = performance.now() - t0;
+    vista.setAttribute('data-ms', S.ultimoCalculoMs.toFixed(1));
+    if (silencioso) window.scrollTo(0, y);
+  }
+
+  function avance() {
+    var d = S.datos, h = '';
+    if (d && d.faltan > 0) {
+      var total = Math.max(1, Est.difDias(HIST_DESDE, d.hasta) + 1);
+      var p = Math.max(0, Math.min(99, Math.floor((total - d.faltan) / total * 100)));
+      h += '<div class="havance"><span class="hgiro"></span>Cargando el histórico de Plade: ' + p + ' %.' + (S.prep ? ' Se muestra lo ya cargado.' : '') +
+        '<div class="barra"><i style="width:' + p + '%"></i></div></div>';
+    }
+    if (S.error && S.datos) h += '<div class="haviso">No pude actualizar el histórico: ' + esc(S.error) + '. Se muestran los últimos datos recibidos.</div>';
+    return h;
+  }
+
+  function alTocar(e) {
+    var el = e.target.closest('[data-accion]');
+    if (el) {
+      var acc = el.getAttribute('data-accion');
+      if (acc === 'reintentar') { S.error = null; pedirHistorico(); dibujar(); }
+      else if (acc === 'reintentar-graficas') dibujar();
+      else if (acc === 'periodo') { S.periodo = el.getAttribute('data-v'); guardarPref(); dibujar(true); }
+      else if (acc === 'iva') { S.iva = el.getAttribute('data-v') === '1'; guardarPref(); dibujar(true); }
+      else if (acc === 'ordenar') {
+        var col = el.getAttribute('data-col');
+        S.orden = S.orden.col === col ? { col: col, dir: -S.orden.dir } : { col: col, dir: col === 'nombre' ? 1 : -1 };
+        dibujar(true);
+      } else if (acc === 'suc') {
+        S.sucSel = el.getAttribute('data-id');
+        dibujar(true);
+        var det = document.getElementById('hdetalle');
+        if (det) det.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+      return;
+    }
+    var r = e.target.closest('rect[data-i]');
+    if (r) {
+      var caja = r.closest('[data-info]'), info = caja && document.getElementById(caja.getAttribute('data-info'));
+      if (info) info.textContent = r.getAttribute('data-t');
+    }
+  }
+  function alCambiar(e) {
+    if (e.target.id === 'hselSuc') { S.sucSel = e.target.value; dibujar(true); }
+  }
+  function guardarPref() {
+    try { localStorage.setItem('fact.periodo', S.periodo); localStorage.setItem('fact.iva', S.iva ? '1' : '0'); } catch (e) {}
+  }
+
+  /* ============================== piezas de la vista ============================== */
+
+  function tarjeta(titulo, exp, cuerpo, extra) {
+    extra = extra || '';
+    var m = extra.match(/class="([^"]*)"/), cls = m ? m[1] : 'ht';
+    extra = extra.replace(/\s*class="[^"]*"/, '');
+    return '<section class="' + cls + '"' + extra + '><h2>' + titulo + '</h2>' + (exp ? '<p class="hexp">' + exp + '</p>' : '') + cuerpo + '</section>';
+  }
+  function lienzo(graficas, alto, cfg) {
+    var id = 'hg' + graficas.length + '_' + Math.random().toString(36).slice(2, 7);
+    graficas.push({ id: id, cfg: cfg });
+    return '<div class="hgraf" style="height:' + alto + 'px"><canvas id="' + id + '" role="img"></canvas></div>';
+  }
+  function controles(w) {
+    var P = S.prep, h = '<div class="hctl"><div class="hseg" role="group" aria-label="Período">';
+    PERIODOS.forEach(function (p) {
+      h += '<button type="button" data-accion="periodo" data-v="' + p[0] + '" class="' + (S.periodo === p[0] ? 'activa' : '') + '">' + p[1] + '</button>';
+    });
+    h += '</div><div class="hctl2"><span>' + fechaDMA(P.fechas[w.a]) + ' al ' + fechaDMA(P.fechas[w.b]) + '</span>' +
+      '<div class="hseg" role="group" aria-label="IVA">' +
+      '<button type="button" data-accion="iva" data-v="1" class="' + (S.iva ? 'activa' : '') + '">Con IVA</button>' +
+      '<button type="button" data-accion="iva" data-v="0" class="' + (!S.iva ? 'activa' : '') + '">Sin IVA</button></div></div></div>';
+    return h;
+  }
+  function rangoTxt(r) { return fechaDM(S.prep.fechas[r.a]) + ' al ' + fechaDM(S.prep.fechas[r.b]) + '/' + S.prep.fechas[r.b].slice(2, 4); }
+
+  /* Opciones comunes de las gráficas */
+  function ejeY(fmt, extra) {
+    return Object.assign({ grid: { color: C.rejilla, drawTicks: false }, border: { display: false },
+      ticks: { color: C.sec, padding: 6, maxTicksLimit: 6, callback: fmt || function (v) { return usdCorto(v); } } }, extra || {});
+  }
+  function ejeX(extra) {
+    return Object.assign({ grid: { display: false }, border: { color: C.borde },
+      ticks: { color: C.sec, maxRotation: 0, autoSkip: true, autoSkipPadding: 14 } }, extra || {});
+  }
+  // Los 7 días de la semana caben siempre: no se salta ninguna etiqueta.
+  function ejeSemana() { return ejeX({ ticks: { color: C.sec, maxRotation: 0, autoSkip: false } }); }
+  function leyenda(filtro) {
+    return { display: true, position: 'bottom', align: 'start',
+      labels: { boxWidth: 10, boxHeight: 10, padding: 10, usePointStyle: false, font: { size: 11 },
+        sort: function (x, y) { return x.datasetIndex - y.datasetIndex; },
+        filter: filtro || function (it) { return !/^_/.test(it.text); } } };
+  }
+  function tipUsd(ctx) { return ' ' + ctx.dataset.label + ': ' + usd(ctx.parsed.y); }
+  function alfa(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  // Con más de 12 meses en pantalla, las fechas llevan el año (1/4/25), porque el rango abarca dos años.
+  function etiquetasFechas(a, b) {
+    var out = [], anio = b - a + 1 > 366;
+    for (var i = a; i <= b; i++) { var f = S.prep.fechas[i]; out.push(fechaDM(f) + (anio ? '/' + f.slice(2, 4) : '')); }
+    return out;
+  }
+
+  /* Bigotes (rango intercuartílico) sobre barras: plugin local */
+  function pluginBigotes(lo, hi) {
+    return { id: 'bigotes', afterDatasetsDraw: function (ch) {
+      var meta = ch.getDatasetMeta(0), y = ch.scales.y, cx = ch.ctx;
+      cx.save(); cx.strokeStyle = C.tinta; cx.lineWidth = 1.5;
+      meta.data.forEach(function (el, i) {
+        if (!esNum(lo[i]) || !esNum(hi[i])) return;
+        var y1 = y.getPixelForValue(lo[i]), y2 = y.getPixelForValue(hi[i]), w = Math.min(10, el.width / 3);
+        cx.beginPath(); cx.moveTo(el.x, y1); cx.lineTo(el.x, y2);
+        cx.moveTo(el.x - w, y1); cx.lineTo(el.x + w, y1); cx.moveTo(el.x - w, y2); cx.lineTo(el.x + w, y2);
+        cx.stroke();
+      });
+      cx.restore();
+    } };
+  }
+
+  /* Minigráfica SVG (sparkline) */
+  /* Nombre largo en dos líneas (cortado en el espacio más cercano a la mitad), en vez de truncarlo con «…». */
+  function dosLineas(n, max) {
+    if (n.length <= max) return n;
+    var mejor = -1;
+    for (var i = 1; i < n.length - 1; i++) if (n[i] === ' ' && (mejor < 0 || Math.abs(i - n.length / 2) < Math.abs(mejor - n.length / 2))) mejor = i;
+    if (mejor < 0) return n.length > max + 4 ? n.slice(0, max + 3) + '…' : n;
+    var a = n.slice(0, mejor), b = n.slice(mejor + 1);
+    return [a, b.length > max + 4 ? b.slice(0, max + 3) + '…' : b];
+  }
+  function sparkline(vals, ancho, alto) {
+    var pts = [], mn = Infinity, mx = -Infinity, i;
+    for (i = 0; i < vals.length; i++) if (esNum(vals[i])) { mn = Math.min(mn, vals[i]); mx = Math.max(mx, vals[i]); }
+    if (!isFinite(mn)) return '';
+    var r = mx - mn || 1, n = vals.length;
+    for (i = 0; i < n; i++) if (esNum(vals[i])) pts.push((n > 1 ? i / (n - 1) * (ancho - 2) + 1 : ancho / 2).toFixed(1) + ',' + (alto - 2 - (vals[i] - mn) / r * (alto - 4)).toFixed(1));
+    return '<svg width="' + ancho + '" height="' + alto + '" viewBox="0 0 ' + ancho + ' ' + alto + '" aria-hidden="true">' +
+      '<polyline fill="none" stroke="' + C.azul + '" stroke-width="1.5" stroke-linejoin="round" points="' + pts.join(' ') + '"/></svg>';
+  }
+
+  function colorSecuencial(t) { // 0 → azul muy claro, 1 → azul principal
+    t = Math.max(0, Math.min(1, t));
+    var a = [232, 238, 255], b = [29, 78, 216];
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' + Math.round(a[2] + (b[2] - a[2]) * t) + ')';
+  }
+  function colorDivergente(r) { // −1 naranja ↔ 0 gris ↔ +1 azul
+    if (!esNum(r)) return '#F3F4F8';
+    var g = [229, 231, 235], c = r >= 0 ? [29, 78, 216] : [235, 104, 52], t = Math.min(1, Math.abs(r));
+    return 'rgb(' + Math.round(g[0] + (c[0] - g[0]) * t) + ',' + Math.round(g[1] + (c[1] - g[1]) * t) + ',' + Math.round(g[2] + (c[2] - g[2]) * t) + ')';
+  }
+
+  /* ============================== HISTÓRICO ============================== */
+
+  function vistaHistorico(G) {
+    var P = S.prep, w = ventana(), act = indicadores(w.a, w.b);
+    var ant = w.ant ? indicadores(w.ant.a, w.ant.b) : null, anio = w.anio ? indicadores(w.anio.a, w.anio.b) : null;
+    var h = controles(w);
+    var ivaTxt = S.iva ? 'con IVA' : 'sin IVA';
+
+    /* 1. Tarjetas */
+    var res = '<div class="hgrande">' + usd(act.venta) + '</div>' +
+      '<div class="hcomp"><span>Frente al período anterior' + (w.ant ? ' (' + rangoTxt(w.ant) + ')' : '') + '</span>' +
+      (ant ? chip(act.venta, ant.venta) : '<span class="hchip">sin datos</span>') + '</div>' +
+      '<div class="hcomp"><span>Frente al mismo período del año anterior</span>' +
+      (anio ? chip(act.venta, anio.venta) : '<span class="hchip">sin datos</span>') + '</div>';
+    h += tarjeta('Venta del período', 'Total facturado ' + ivaTxt + ' en ' + act.dias + ' días con ventas. El año anterior se alinea por día de la semana.', res, ' class="ht hres"');
+
+    function k(et, val, a1, a0, tipo, sub, neutro) {
+      return '<div class="hk"><div class="e">' + et + '</div><div class="v">' + val + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') +
+        (ant ? chip(a1, a0, tipo, neutro) : '') + '</div>';
+    }
+    var g = '<div class="hgrid">' +
+      k('Promedio diario', usd(act.media), act.media, ant && ant.media) +
+      k('Mediana diaria', usd(act.mediana), act.mediana, ant && ant.mediana) +
+      k('Desviación estándar', usd(act.desv), act.desv, ant && ant.desv, 'usd', null, true) +
+      k('Coeficiente de variación', act.cv !== null ? pct(act.cv) : '—', act.cv, ant && ant.cv, 'pp', null, true) +
+      k('Mejor día', act.mejor ? usd(act.mejor.v) : '—', act.mejor && act.mejor.v, ant && ant.mejor && ant.mejor.v, 'usd', act.mejor ? fechaLarga(act.mejor.f) : '') +
+      k('Peor día', act.peor ? usd(act.peor.v) : '—', act.peor && act.peor.v, ant && ant.peor && ant.peor.v, 'usd', act.peor ? fechaLarga(act.peor.f) : '') +
+      k('Tickets', num(act.tk), act.tk, ant && ant.tk, 'ent') +
+      k('Ticket promedio', usd(act.ticket, true), act.ticket, ant && ant.ticket, 'usd2') +
+      k('Unidades por ticket', num(act.upt, 2), act.upt, ant && ant.upt, 'num2') +
+      k('Precio promedio por unidad', usd(act.precio, true), act.precio, ant && ant.precio, 'usd2') +
+      '</div>';
+    h += tarjeta('Indicadores del período', (S.periodo === 'todo' ? 'Con «Todo» no hay un período anterior para comparar. ' : ant ? 'Cada variación compara con el período anterior de igual largo. ' : 'El período anterior no tiene datos completos para comparar. ') + 'La desviación estándar mide cuánto se alejan los días del promedio; el coeficiente de variación la expresa en %.', g);
+
+    /* 2. Venta diaria con medias móviles y atípicos */
+    var v = serie('venta'), ab = serie('abiertos');
+    // Los días cerrados (null) no borran la ventana: se promedian los días abiertos si hay al menos el 70 %.
+    var mm7 = memo('mm7', function () { return Est.mediaMovil(ab, 7, false, 0.7); });
+    var mm28 = memo('mm28', function () { return Est.mediaMovil(ab, 28, false, 0.7); });
+    var atip = memo('atip', function () { return Est.atipicos(P.fechas, ab); });
+    var atipPorI = {};
+    atip.forEach(function (x) { atipPorI[x.i] = x; });
+    var etq = etiquetasFechas(w.a, w.b), dV = [], d7 = [], d28 = [], dA = [];
+    for (var i = w.a; i <= w.b; i++) {
+      dV.push(v[i]); d7.push(mm7[i]); d28.push(mm28[i]);
+      dA.push(atipPorI[i] ? v[i] : null);
+    }
+    var nAt = dA.filter(function (x) { return x !== null; }).length;
+    h += tarjeta('Venta diaria', 'Cada día con su promedio de los últimos 7 y 28 días. Los puntos rojos son días atípicos' + (nAt ? ' (' + nAt + ' en el período)' : '') + ': se apartan mucho de lo esperado para ese día.',
+      lienzo(G, 250, {
+        type: 'line',
+        data: { labels: etq, datasets: [
+          { label: 'Venta diaria', data: dV, borderColor: alfa(C.azul, dV.length > 120 ? 0.22 : 0.35), borderWidth: dV.length > 120 ? 1 : 1.5, backgroundColor: alfa(C.azul, 0.35), order: 3 },
+          { label: 'Media 7 días', data: d7, borderColor: C.azul, order: 2 },
+          { label: 'Media 28 días', data: d28, borderColor: C.gris, order: 1 },
+          { label: 'Atípico', data: dA, showLine: false, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: C.rojo, pointBorderColor: '#fff', pointBorderWidth: 1.5, borderColor: C.rojo, backgroundColor: C.rojo, order: 0 }
+        ] },
+        options: { interaction: { mode: 'index', intersect: false },
+          plugins: { legend: leyenda(), tooltip: { callbacks: {
+            title: function (it) { return fechaLarga(P.fechas[w.a + it[0].dataIndex]); },
+            label: function (c) {
+              if (c.datasetIndex === 3) {
+                var x = atipPorI[w.a + c.dataIndex];
+                return x ? ' Atípico: esperado ' + usd(x.esperado) + ', diferencia ' + textoVar(x.dif, x.difPct) : null;
+              }
+              return c.parsed.y === null ? null : tipUsd(c);
+            } } } },
+          scales: { x: ejeX(), y: ejeY() } }
+      }));
+
+    /* 3. Convenio y farmacia, por día */
+    h += seccionConvenio(G, w, act, ant);
+
+    /* 4. Venta por mes */
+    h += seccionMeses(G, w);
+
+    /* 5. Perfil por día de la semana */
+    var fa = [], ya = [];
+    for (i = w.a; i <= w.b; i++) if (ab[i] !== null) { fa.push(P.fechas[i]); ya.push(ab[i]); }
+    var perf = Est.perfilSemanal(fa, ya), pm = [], plo = [], phi = [], pi = [];
+    ORDEN_SEM.forEach(function (d) { pm.push(perf[d].media); plo.push(perf[d].p25); phi.push(perf[d].p75); pi.push(perf[d].indice); });
+    var mejorD = null, peorD = null;
+    ORDEN_SEM.forEach(function (d) { if (perf[d].indice !== null) { if (mejorD === null || perf[d].indice > perf[mejorD].indice) mejorD = d; if (peorD === null || perf[d].indice < perf[peorD].indice) peorD = d; } });
+    var dias = '<div class="hdias">' + ORDEN_SEM.map(function (d, j) { return '<div>' + DSEM_C[d] + '<b>' + (pi[j] !== null ? num(pi[j]) : '—') + '</b></div>'; }).join('') + '</div>';
+    h += tarjeta('Perfil por día de la semana', 'Venta media de cada día; la línea vertical marca el rango donde cae la mitad central de esos días.',
+      lienzo(G, 210, {
+        type: 'bar',
+        data: { labels: ORDEN_SEM.map(function (d) { return DSEM_C[d]; }), datasets: [{ label: 'Venta media', data: pm, backgroundColor: alfa(C.azul, 0.85), borderRadius: 6, maxBarThickness: 34 }] },
+        options: { plugins: { tooltip: { callbacks: {
+          title: function (it) { return DSEM[ORDEN_SEM[it[0].dataIndex]]; },
+          label: function (c) { var j = c.dataIndex; return [' Media: ' + usd(pm[j]), ' Mitad central: ' + usd(plo[j]) + ' a ' + usd(phi[j]), ' Índice: ' + (pi[j] !== null ? num(pi[j]) : '—')]; } } } },
+          scales: { x: ejeSemana(), y: ejeY(null, { beginAtZero: true }) } },
+        plugins: [pluginBigotes(plo, phi)]
+      }) +
+      '<p class="hsub">Índice estacional</p><p class="hexp">100 es un día promedio' +
+      (mejorD !== null ? '; el ' + DSEM[mejorD] + ' vende ' + num(Math.abs(perf[mejorD].indice - 100)) + ' % más y el ' + DSEM[peorD] + ' ' + num(Math.abs(100 - perf[peorD].indice)) + ' % menos' : '') + '.</p>' + dias);
+
+    /* 6. Distribución */
+    h += seccionDistribucion(G, ya);
+
+    /* 7. Mapa de calor del calendario */
+    h += seccionCalendario(w);
+
+    /* 8. De dónde vino la variación */
+    h += seccionDescomposicion(w, act, ant);
+
+    /* 9. Relación tráfico-venta */
+    var xs = [], ys = [], pts = [];
+    for (i = w.a; i <= w.b; i++) if (v[i] > 0 && P.tk[i] > 0) { xs.push(P.tk[i]); ys.push(v[i]); pts.push({ x: P.tk[i], y: v[i], f: P.fechas[i] }); }
+    var pr = Est.pearson(xs, ys), rl = Est.regresionLineal(xs, ys), linea = [];
+    if (rl) {
+      var mnx = Math.min.apply(null, xs), mxx = Math.max.apply(null, xs);
+      linea = [{ x: mnx, y: rl.intercepto + rl.pendiente * mnx }, { x: mxx, y: rl.intercepto + rl.pendiente * mxx }];
+    }
+    var decR = pr.r !== null && Math.abs(pr.r) > 0.99 ? 3 : 2; // r = 1,00 parecería una relación perfecta
+    var txtR = pr.r !== null ? '<p class="hnota">r de Pearson = <b>' + num(pr.r, decR) + '</b> · R² = <b>' + num(pr.r2, decR) + '</b>. ' +
+      'El ' + num(pr.r2 * 100) + ' % de las diferencias de venta entre un día y otro se explica por la cantidad de tickets' +
+      (rl ? '; cada ticket adicional suma en promedio ' + usd(rl.pendiente, true) + '.' : '.') + ' Un r cercano a 1 indica una relación fuerte.</p>' : '';
+    h += tarjeta('Relación tráfico-venta', 'Cada punto es un día: tickets atendidos frente a venta. La recta resume la relación.',
+      lienzo(G, 240, {
+        type: 'scatter',
+        data: { datasets: [
+          { label: 'Días', data: pts, pointRadius: 3, pointHoverRadius: 5, backgroundColor: alfa(C.azul, 0.45), borderColor: alfa(C.azul, 0.45) },
+          { label: 'Recta de regresión', type: 'line', data: linea, borderColor: C.naranja, pointRadius: 0, pointHoverRadius: 0, borderWidth: 2 }
+        ] },
+        options: { interaction: { mode: 'nearest', intersect: true },
+          plugins: { legend: leyenda(), tooltip: { filter: function (c) { return c.datasetIndex === 0; }, callbacks: {
+            title: function (it) { return it[0].raw.f ? fechaLarga(it[0].raw.f) : ''; },
+            label: function (c) { return [' Tickets: ' + num(c.parsed.x), ' Venta: ' + usd(c.parsed.y)]; } } } },
+          scales: { x: { type: 'linear', grid: { display: false }, border: { color: C.borde }, ticks: { color: C.sec, maxTicksLimit: 6, callback: function (v) { return num(v); } },
+            title: { display: true, text: 'Tickets por día', color: C.sec, font: { size: 11 } } }, y: ejeY() } }
+      }) + txtR);
+    return h;
+  }
+
+  /* Reparto convenio / farmacia de hoy hasta ahora (del modo json). Vacío si no hay dato. */
+  function repartoHoy() {
+    var hoy = S.hoy && S.hoy.convenio;
+    if (!hoy || !esNum(+hoy.venta) || !(S.hoy.venta > 0)) return '';
+    var tot = S.iva ? S.hoy.venta : (S.hoy.sinIva ? S.hoy.sinIva.venta : null);
+    var cvh = S.iva ? +hoy.venta : +hoy.ventaSinIva;
+    if (!esNum(tot) || !(tot > 0) || !esNum(cvh)) return '';
+    var fh = tot - cvh, pc = cvh / tot * 100, tkC = +hoy.tk || 0, tkF = Math.max(0, (S.hoy.tk || 0) - tkC);
+    function tks(n) { return num(n) + (n === 1 ? ' ticket' : ' tickets'); }
+    return '<div class="hrep"><div class="t">Hoy hasta ' + (S.hoy.hora ? 'las ' + esc(S.hoy.hora) : 'ahora') + ' (' + (S.iva ? 'con' : 'sin') + ' IVA)</div>' +
+      '<div class="hsplit"><i style="width:' + pc.toFixed(1) + '%;background:' + C.naranja + '"></i><i style="width:' + (100 - pc).toFixed(1) + '%;background:' + C.azul + '"></i></div>' +
+      '<div class="l"><span><i class="hpunto" style="background:' + C.naranja + '"></i>Convenio · ' + pct(pc) + '</span><b>' + usd(cvh) + '<span class="s">' + tks(tkC) + '</span></b></div>' +
+      '<div class="l"><span><i class="hpunto" style="background:' + C.azul + '"></i>Farmacia · ' + pct(100 - pc) + '</span><b>' + usd(fh) + '<span class="s">' + tks(tkF) + '</span></b></div></div>';
+  }
+
+  function seccionConvenio(G, w, act, ant) {
+    var P = S.prep, cv = serie('conv'), fa = serie('farm'), i, h = repartoHoy();
+    var etq = etiquetasFechas(w.a, w.b), dc = [], df = [], dp = [], dp7 = [];
+    for (i = w.a; i <= w.b; i++) {
+      dc.push(cv[i]); df.push(fa[i]);
+      var t = (cv[i] || 0) + (fa[i] || 0);
+      dp.push(t > 0 ? cv[i] / t * 100 : null);
+      var sc = 0, st = 0;
+      for (var j = Math.max(0, i - 6); j <= i; j++) { sc += cv[j] || 0; st += (cv[j] || 0) + (fa[j] || 0); }
+      dp7.push(st > 0 && i - 6 >= 0 ? sc / st * 100 : null);
+    }
+    var largo = w.b - w.a + 1;
+    h += lienzo(G, 230, {
+      type: 'bar',
+      data: { labels: etq, datasets: [
+        { label: 'Convenio', data: dc, backgroundColor: C.naranja, stack: 'v', barPercentage: largo > 120 ? 1 : 0.85, categoryPercentage: largo > 120 ? 1 : 0.9 },
+        { label: 'Farmacia', data: df, backgroundColor: alfa(C.azul, 0.85), stack: 'v', barPercentage: largo > 120 ? 1 : 0.85, categoryPercentage: largo > 120 ? 1 : 0.9 }
+      ] },
+      options: { interaction: { mode: 'index', intersect: false },
+        plugins: { legend: leyenda(), tooltip: { callbacks: {
+          title: function (it) { return fechaLarga(P.fechas[w.a + it[0].dataIndex]); },
+          label: tipUsd,
+          footer: function (it) { var j = it[0].dataIndex; return dp[j] !== null ? 'Convenio: ' + pct(dp[j]) + ' del día' : ''; } } } },
+        scales: { x: ejeX({ stacked: true }), y: ejeY(null, { stacked: true, beginAtZero: true }) } }
+    });
+    h += '<p class="hsub">Participación del convenio</p><p class="hexp">Qué parte de la venta de cada día fue por convenio; la línea oscura es el promedio de 7 días.</p>';
+    h += lienzo(G, 170, {
+      type: 'line',
+      data: { labels: etq, datasets: [
+        { label: 'Del día', data: dp, borderColor: alfa(C.naranja, 0.35), borderWidth: 1.5 },
+        { label: 'Promedio 7 días', data: dp7, borderColor: C.naranja }
+      ] },
+      options: { interaction: { mode: 'index', intersect: false },
+        plugins: { legend: leyenda(), tooltip: { callbacks: {
+          title: function (it) { return fechaLarga(P.fechas[w.a + it[0].dataIndex]); },
+          label: function (c) { return c.parsed.y === null ? null : ' ' + c.dataset.label + ': ' + pct(c.parsed.y); } } } },
+        scales: { x: ejeX(), y: ejeY(function (v) { return num(v) + ' %'; }, { beginAtZero: true }) } }
+    });
+    function fila(et, a, b, ta, tb, tipo, fmt) {
+      return '<tr><td>' + et + '</td><td>' + fmt(a.v) + (ant ? '<br><span class="chico ' + clsVar(a.v, a.o, tipo) + '">' + varCorta(a.v, a.o, tipo) + '</span>' : '') +
+        '</td><td>' + fmt(b.v) + (ant ? '<br><span class="chico ' + clsVar(b.v, b.o, tipo) + '">' + varCorta(b.v, b.o, tipo) + '</span>' : '') + '</td></tr>';
+    }
+    var c0 = ant ? ant.conv : {}, f0 = ant ? ant.farm : {};
+    var tabla = '<div class="hscroll"><table class="htab"><thead><tr><th></th><th><i class="hpunto" style="background:' + C.naranja + '"></i>Convenio</th><th><i class="hpunto" style="background:' + C.azul + '"></i>Farmacia</th></tr></thead><tbody>' +
+      fila('Venta', { v: act.conv.venta, o: c0.venta }, { v: act.farm.venta, o: f0.venta }, 0, 0, 'usd', function (x) { return usd(x); }) +
+      fila('Tickets', { v: act.conv.tk, o: c0.tk }, { v: act.farm.tk, o: f0.tk }, 0, 0, 'ent', function (x) { return num(x); }) +
+      fila('Ticket promedio', { v: act.conv.ticket, o: c0.ticket }, { v: act.farm.ticket, o: f0.ticket }, 0, 0, 'usd2', function (x) { return esNum(x) ? usd(x, true) : '—'; }) +
+      fila('Participación', { v: act.conv.part, o: c0.part }, { v: act.farm.part, o: f0.part }, 0, 0, 'pp', function (x) { return esNum(x) ? pct(x) : '—'; }) +
+      '</tbody></table></div>';
+    h += '<p class="hsub">En el período</p>' + tabla;
+    return tarjeta('Convenio y farmacia, por día', 'Venta diaria separada en convenio (naranja) y venta propia de la farmacia (azul)' + (ant ? '; debajo de cada cifra, su variación frente al período anterior.' : '.'), h);
+  }
+  function clsVar(a, b, tipo) {
+    if (!esNum(a) || !esNum(b)) return '';
+    var v = Est.variacion(a, b);
+    return esCero(v.dif, tipo === 'pp' ? null : v.pct, tipo) ? '' : a > b ? 'mas' : 'menos';
+  }
+  function varCorta(a, b, tipo) {
+    if (!esNum(a) || !esNum(b)) return 'sin comparación';
+    var v = Est.variacion(a, b);
+    return textoVar(v.dif, tipo === 'pp' ? null : v.pct, tipo);
+  }
+
+  function seccionMeses(G, w) {
+    var P = S.prep, v = serie('venta'), fFin = P.fechas[w.b], fIni = P.fechas[w.a];
+    var meses = [], ym = fFin.slice(0, 7), ymIni = fIni.slice(0, 7);
+    // Meses del período (al menos 3)
+    var cur = ym;
+    while (true) {
+      meses.unshift(cur);
+      var y = +cur.slice(0, 4), m = +cur.slice(5, 7) - 1;
+      if (m === 0) { y--; m = 12; }
+      var prev = y + '-' + (m < 10 ? '0' : '') + m;
+      if ((cur <= ymIni && meses.length >= 3) || prev + '-01' < P.f0.slice(0, 7) + '-01') break;
+      cur = prev;
+    }
+    function sumaMes(ymx, hastaDia) {
+      var ini = ymx + '-01', fin = finDeMes(ini);
+      if (hastaDia) fin = ymx + '-' + (hastaDia < 10 ? '0' : '') + hastaDia;
+      var a = Est.difDias(P.f0, ini), b = Math.min(P.N - 1, Est.difDias(P.f0, fin));
+      var nd = Est.difDias(ini, fin) + 1;
+      if (b < 0 || a > P.N - 1) return null;
+      var cubre = a >= 0 && diasConDatos(a, b) >= 0.9 * nd;
+      return { v: sumaRango(v, a, b), completo: cubre };
+    }
+    var diaFin = +fFin.slice(8, 10), parcial = fFin !== finDeMes(fFin);
+    var filas = [], dA = [], dP = [], etq = [];
+    meses.forEach(function (mx) {
+      var esParcial = mx === ym && parcial;
+      var actual = sumaMes(mx, esParcial ? diaFin : 0);
+      var yAnt = (+mx.slice(0, 4) - 1) + mx.slice(4);
+      var previo = sumaMes(yAnt, esParcial ? diaFin : 0);
+      var incompleto = actual && !actual.completo;
+      etq.push(mesCorto(mx) + (esParcial ? '*' : ''));
+      dA.push(actual ? actual.v : null);
+      dP.push(previo && previo.completo ? previo.v : null);
+      filas.push({ mes: mx, v: actual ? actual.v : null, p: previo && previo.completo ? previo.v : null, parcial: esParcial, incompleto: incompleto });
+    });
+    var colores = filas.map(function (f) { return f.parcial || f.incompleto ? alfa(C.azul, 0.45) : C.azul; });
+    var hayPrev = dP.some(function (x) { return x !== null; });
+    var cfg = {
+      type: 'bar',
+      data: { labels: etq, datasets: [{ label: 'Este año', data: dA, backgroundColor: colores, borderRadius: 4, maxBarThickness: 26 }]
+        .concat(hayPrev ? [{ label: 'Año anterior', data: dP, backgroundColor: C.gris, borderRadius: 4, maxBarThickness: 26 }] : []) },
+      options: { interaction: { mode: 'index', intersect: false },
+        plugins: { legend: hayPrev ? leyenda() : { display: false }, tooltip: { callbacks: {
+          title: function (it) { var f = filas[it[0].dataIndex]; return MESES_L[+f.mes.slice(5, 7) - 1] + ' ' + f.mes.slice(0, 4) + (f.parcial ? ' (parcial, hasta el ' + diaFin + ')' : f.incompleto ? ' (datos incompletos)' : ''); },
+          label: tipUsd,
+          footer: function (it) { var f = filas[it[0].dataIndex]; return esNum(f.v) && esNum(f.p) ? 'Variación: ' + textoVar(f.v - f.p, Est.variacion(f.v, f.p).pct) : ''; } } } },
+        scales: { x: ejeX({ ticks: { color: C.sec, maxRotation: 0, autoSkip: true, autoSkipPadding: 8 } }), y: ejeY(null, { beginAtZero: true }) } }
+    };
+    var tabla = '<div class="hscroll"><table class="htab"><thead><tr><th>Mes</th><th>Venta</th><th>Año ant.</th><th>Variación</th></tr></thead><tbody>';
+    filas.slice().reverse().forEach(function (f) {
+      var vr = esNum(f.v) && esNum(f.p) ? Est.variacion(f.v, f.p) : null;
+      tabla += '<tr><td>' + mesCorto(f.mes) + (f.parcial ? ' <span class="chico">parcial</span>' : f.incompleto ? ' <span class="chico">incompleto</span>' : '') + '</td><td>' + (esNum(f.v) ? usd(f.v) : '—') +
+        '</td><td>' + (esNum(f.p) ? usd(f.p) : '—') + '</td><td class="' + (vr ? (vr.dif >= 0 ? 'mas' : 'menos') : '') + '">' +
+        (vr ? textoVar(vr.dif, null) + '<br><span class="chico ' + (vr.dif >= 0 ? 'mas' : 'menos') + '">' + (vr.pct >= 0 ? '+' : '−') + pctVar(vr.pct) + '</span>' : '—') + '</td></tr>';
+    });
+    tabla += '</tbody></table></div>';
+    return tarjeta('Venta por mes', 'Cada mes frente al mismo mes del año anterior.' + (parcial ? ' * El mes en curso es parcial: se compara con los mismos días del año anterior.' : ''), lienzo(G, 220, cfg) + tabla);
+  }
+
+  function seccionDistribucion(G, ya) {
+    if (ya.length < 5) return tarjeta('Distribución de la venta diaria', 'Hacen falta más días para calcularla.', '');
+    var b = Est.basicos(ya), hi = Est.histograma(ya);
+    var etq = hi.bins.map(function (x) { return usdCorto(x.desde); }), dat = hi.bins.map(function (x) { return x.n; });
+    var cfg = {
+      type: 'bar',
+      data: { labels: etq, datasets: [{ label: 'Días', data: dat, backgroundColor: alfa(C.azul, 0.85), barPercentage: 1, categoryPercentage: 0.94, borderRadius: 3 }] },
+      options: { plugins: { tooltip: { callbacks: {
+        title: function (it) { var x = hi.bins[it[0].dataIndex]; return 'De ' + usd(x.desde) + ' a ' + usd(x.hasta); },
+        label: function (c) { return ' ' + c.parsed.y + (c.parsed.y === 1 ? ' día' : ' días'); } } } },
+        scales: { x: ejeX({ ticks: { color: C.sec, maxRotation: 0, autoSkip: true, autoSkipPadding: 10 } }), y: ejeY(function (v) { return Number.isInteger(v) ? num(v) : ''; }, { beginAtZero: true }) } }
+    };
+    function it(k, val, x) { return '<div class="it"><div class="k">' + k + '<b>' + val + '</b></div><div class="x">' + x + '</div></div>'; }
+    var a = b.asimetria, c = b.curtosis;
+    var txA = !esNum(a) ? 'No se puede calcular.' : Math.abs(a) < 0.5 ? 'Casi simétrica: los días altos y bajos se reparten parejo alrededor del promedio.' :
+      a > 0 ? 'Positiva: la mayoría de los días se agrupa abajo y unos pocos días muy altos suben el promedio.' :
+        'Negativa: la mayoría de los días se agrupa arriba y unos pocos días muy bajos bajan el promedio.';
+    var txC = !esNum(c) ? 'No se puede calcular.' : c > 1 ? 'Alta: hay más días extremos (muy altos o muy bajos) de lo habitual.' :
+      c < -1 ? 'Baja: los días se reparten de forma pareja, con pocos extremos.' : 'Normal: los días extremos aparecen con la frecuencia habitual.';
+    var lista = '<div class="hlista">' +
+      it('P10', usd(b.p10), 'El 10 % de los días vendió menos que esto.') +
+      it('P25', usd(b.p25), 'Una cuarta parte de los días vendió menos que esto.') +
+      it('P50', usd(b.mediana), 'La mediana: la mitad de los días vendió menos y la otra mitad, más.') +
+      it('P75', usd(b.p75), 'Tres de cada cuatro días vendieron menos que esto.') +
+      it('P90', usd(b.p90), 'Solo el 10 % de los días superó esta cifra.') +
+      it('Asimetría', esNum(a) ? num(a, 2) : '—', txA) +
+      it('Curtosis', esNum(c) ? num(c, 2) : '—', txC) + '</div>';
+    return tarjeta('Distribución de la venta diaria', 'Cuántos días cayeron en cada tramo de venta. Los percentiles dicen qué tan alto o bajo fue un día frente al resto.', lienzo(G, 200, cfg) + lista);
+  }
+
+  function seccionCalendario(w) {
+    var P = S.prep, v = serie('venta'), i;
+    var vals = [];
+    for (i = w.a; i <= w.b; i++) if (v[i] > 0) vals.push(v[i]);
+    var lo = Est.cuantil(vals, 0.05), hi = Est.cuantil(vals, 0.95);
+    // Columnas = semanas (lunes a domingo), filas = días
+    var dIni = (Est.diaSemana(P.fechas[w.a]) + 6) % 7, nSem = Math.ceil((dIni + w.b - w.a + 1) / 7);
+    var CEL = 13, GAP = 2, IZQ = 26, ARR = 16, ancho = IZQ + nSem * (CEL + GAP), alto = ARR + 7 * (CEL + GAP);
+    var s = '<svg width="' + ancho + '" height="' + alto + '" viewBox="0 0 ' + ancho + ' ' + alto + '" role="img" aria-label="Mapa de calor del calendario">';
+    [0, 2, 4, 6].forEach(function (r) {
+      s += '<text x="0" y="' + (ARR + r * (CEL + GAP) + CEL - 2) + '" font-size="10" fill="' + C.sec + '">' + DSEM_C[ORDEN_SEM[r]] + '</text>';
+    });
+    var ultimoMes = null;
+    for (i = w.a; i <= w.b; i++) {
+      var k = dIni + i - w.a, col = Math.floor(k / 7), fil = k % 7, f = P.fechas[i];
+      var x = IZQ + col * (CEL + GAP), y = ARR + fil * (CEL + GAP);
+      if (f.slice(0, 7) !== ultimoMes && (fil === 0 || i === w.a)) {
+        ultimoMes = f.slice(0, 7);
+        s += '<text x="' + x + '" y="10" font-size="10" fill="' + C.sec + '">' + MESES[+f.slice(5, 7) - 1] + '</text>';
+      }
+      var val = v[i], color = val === null ? '#FFFFFF' : val <= 0 ? '#E5E7EB' : colorSecuencial(hi > lo ? (val - lo) / (hi - lo) : 0.5);
+      var t = fechaLarga(f) + ': ' + (val === null ? 'sin datos' : val <= 0 ? 'sin ventas' : usd(val));
+      s += '<rect data-i="' + i + '" data-t="' + esc(t) + '" x="' + x + '" y="' + y + '" width="' + CEL + '" height="' + CEL + '" rx="3" fill="' + color + '"' +
+        (val === null ? ' stroke="#E5E7EB"' : '') + '><title>' + esc(t) + '</title></rect>';
+    }
+    s += '</svg>';
+    var ley = '<div class="hleyenda">Menos <i style="background:' + colorSecuencial(0) + '"></i><i style="background:' + colorSecuencial(0.33) + '"></i><i style="background:' + colorSecuencial(0.66) + '"></i><i style="background:' + colorSecuencial(1) + '"></i> Más · <i style="background:#E5E7EB"></i> sin ventas</div>';
+    return tarjeta('Calendario de ventas', 'Cada cuadro es un día; más oscuro, más venta. Toque un día para ver su monto.',
+      '<div class="hcal" data-info="hcalInfo">' + s + '</div>' + ley + '<div class="hinfo" id="hcalInfo"></div>');
+  }
+
+  function filaBarra(et, val, maxAbs, color, sub, signo) {
+    var w = maxAbs > 0 ? Math.abs(val) / maxAbs * 50 : 0, izq = signo && val < 0 ? 50 - w : 50;
+    if (!signo) { w = maxAbs > 0 ? Math.abs(val) / maxAbs * 100 : 0; izq = 0; }
+    return '<div class="hbar"><div class="a"><span>' + et + '</span><b>' + (signo ? (val > 0 ? '+' : val < 0 ? '−' : '') + '$' + num(Math.abs(val)) : usd(val)) + '</b></div>' +
+      (sub ? '<div class="p">' + sub + '</div>' : '') +
+      '<div class="riel">' + (signo ? '<span class="cero" style="left:50%"></span>' : '') + '<i style="left:' + izq.toFixed(1) + '%;width:' + w.toFixed(1) + '%;background:' + color + '"></i></div></div>';
+  }
+
+  function seccionDescomposicion(w, act, ant) {
+    if (!ant) return tarjeta('De dónde vino la variación', 'Elija 30 días, 90 días o 12 meses: se necesita un período anterior completo para comparar.', '');
+    var d = Est.descomponerVariacion(ant.venta, ant.tk, act.venta, act.tk);
+    var vT = Est.variacion(act.tk, ant.tk).pct, vA = Est.variacion(act.ticket, ant.ticket).pct;
+    var mx = Math.max(Math.abs(d.efectoTrafico), Math.abs(d.efectoTicket), Math.abs(d.dV));
+    function col(x) { return x >= 0 ? C.verde : C.rojo; }
+    function pv(p) { return esNum(p) ? (p >= 0 ? '+' : '−') + num(Math.abs(p), 1) + ' %' : '—'; }
+    var cuerpo = '<div class="hlista" style="margin-top:6px">' +
+      filaBarra('Variación total de la venta', d.dV, mx, col(d.dV), usd(ant.venta) + ' → ' + usd(act.venta) + ' (' + pv(Est.variacion(act.venta, ant.venta).pct) + ')', true) +
+      filaBarra('Por tráfico (cantidad de tickets)', d.efectoTrafico, mx, col(d.efectoTrafico), 'Los tickets variaron ' + pv(vT), true) +
+      filaBarra('Por ticket promedio (gasto por compra)', d.efectoTicket, mx, col(d.efectoTicket), 'El ticket promedio varió ' + pv(vA), true) + '</div>';
+    var dc = act.conv.venta - ant.conv.venta, df = act.farm.venta - ant.farm.venta, mx2 = Math.max(Math.abs(dc), Math.abs(df), Math.abs(d.dV));
+    cuerpo += '<p class="hsub">Por tipo de venta</p><div class="hlista" style="margin-top:0">' +
+      filaBarra('Convenio', dc, mx2, col(dc), usd(ant.conv.venta) + ' → ' + usd(act.conv.venta) + ' (' + pv(Est.variacion(act.conv.venta, ant.conv.venta).pct) + ')', true) +
+      filaBarra('Farmacia', df, mx2, col(df), usd(ant.farm.venta) + ' → ' + usd(act.farm.venta) + ' (' + pv(Est.variacion(act.farm.venta, ant.farm.venta).pct) + ')', true) + '</div>';
+    return tarjeta('De dónde vino la variación', 'Cuánto del cambio frente al período anterior se debe a más o menos clientes (tickets) y cuánto a lo que gastó cada uno. Se reparte con logaritmos para que las partes sumen el total.', cuerpo);
+  }
+
+  /* ============================== SUCURSALES ============================== */
+
+  function datosSucursales(w) {
+    var P = S.prep, filas = [], total = 0, totalAnt = 0;
+    Object.keys(P.suc).forEach(function (id) {
+      var s = serie('suc', id), tk = P.sucTk[id];
+      var venta = sumaRango(s, w.a, w.b);
+      var ventaAnt = w.ant ? sumaRango(s, w.ant.a, w.ant.b) : null;
+      if (!(venta > 0) && !(ventaAnt > 0)) return;
+      var vals = [], xs = [], ys = [], i;
+      for (i = w.a; i <= w.b; i++) { vals.push(s[i]); if (s[i] > 0) { xs.push(i - w.a); ys.push(s[i]); } }
+      var bs = Est.basicos(ys), rl = ys.length >= 7 ? Est.regresionLineal(xs, ys) : null;
+      var mm = Est.mediaMovil(s.map(function (x) { return x > 0 ? x : null; }), 7, false, 0.7).slice(w.a, w.b + 1);
+      var tks = sumaRango(tk, w.a, w.b);
+      filas.push({ id: id, nombre: P.nombres[id], venta: venta, ant: ventaAnt, tk: tks, ticket: tks ? venta / tks : null,
+        cv: bs.cv !== null ? bs.cv * 100 : null, tend: rl && bs.media ? rl.pendiente / bs.media * 100 : null,
+        nueva: !!w.ant && venta > 0 && P.primera[id] > w.ant.a, mm: mm, vals: vals });
+      total += venta; totalAnt += ventaAnt || 0;
+    });
+    filas.forEach(function (f) {
+      f.part = total ? f.venta / total * 100 : 0;
+      var v = w.ant && !f.nueva ? Est.variacion(f.venta, f.ant) : { dif: null, pct: null };
+      f.dif = v.dif; f.pct = v.pct;
+    });
+    return { filas: filas, total: total, totalAnt: totalAnt };
+  }
+
+  function vistaSucursales(G) {
+    var P = S.prep, w = ventana(), D = datosSucursales(w), h = controles(w);
+    var filas = D.filas.filter(function (f) { return f.venta > 0; });
+    if (!filas.length) return h + tarjeta('Sucursales', 'No hay ventas por sucursal en el período.', '');
+    var o = S.orden;
+    filas.sort(function (a, b) {
+      var x = a[o.col], y = b[o.col];
+      if (o.col === 'nombre') return o.dir * String(x).localeCompare(String(y), 'es');
+      if (!esNum(x)) return 1; if (!esNum(y)) return -1;
+      return o.dir * (x - y);
+    });
+    if (!S.sucSel || !P.suc[S.sucSel] || !filas.some(function (f) { return f.id === S.sucSel; })) {
+      S.sucSel = filas.slice().sort(function (a, b) { return b.venta - a.venta; })[0].id;
+    }
+
+    /* 1. Tabla */
+    function th(col, txt, izq) {
+      var act = o.col === col;
+      return '<th data-accion="ordenar" data-col="' + col + '" class="' + (act ? 'ord ' : '') + (izq ? 'izq' : '') + '" aria-sort="' + (act ? (o.dir > 0 ? 'ascending' : 'descending') : 'none') + '">' + txt + (act ? (o.dir > 0 ? ' ▲' : ' ▼') : '') + '</th>';
+    }
+    var t = '<div class="hscroll"><table class="htab suc"><thead><tr>' + th('nombre', 'Sucursal', true) + th('venta', 'Venta') + th('part', 'Part.') +
+      th('pct', 'Var. vs anterior') + th('ticket', 'Ticket') + th('cv', 'CV') + th('tend', 'Tend.') + '<th>Media 7 d</th></tr></thead><tbody>';
+    filas.forEach(function (f) {
+      var varTxt = f.nueva ? '<span class="hchip nueva">nueva</span>' : esNum(f.dif) ?
+        '<span class="' + (f.dif >= 0 ? 'mas' : 'menos') + '">' + textoVar(f.dif, f.pct) + '</span>' : '<span class="chico">—</span>';
+      t += '<tr data-accion="suc" data-id="' + esc(f.id) + '" class="' + (f.id === S.sucSel ? 'sel' : '') + '"><td><b>' + esc(f.nombre) + '</b></td><td>' + usd(f.venta) + '</td><td>' + pct(f.part) + '</td><td>' + varTxt +
+        '</td><td>' + (esNum(f.ticket) ? usd(f.ticket, true) : '—') + '</td><td>' + (esNum(f.cv) ? pct(f.cv, 0) : '—') + '</td><td class="' + (esNum(f.tend) ? (f.tend >= 0 ? 'chico mas' : 'chico menos') : '') + '">' +
+        (esNum(f.tend) ? (f.tend >= 0 ? '+' : '−') + num(Math.abs(f.tend), 2) + ' %/día' : '—') + '</td><td class="spark">' + sparkline(f.mm, 84, 24) + '</td></tr>';
+    });
+    t += '</tbody></table></div>';
+    h += tarjeta('Sucursales en el período', 'Toque un encabezado para ordenar y una sucursal para ver su detalle. CV: cuánto varía su venta de un día a otro (menos es más estable). Tend.: cuánto crece o cae por día, en % de su promedio.' +
+      (S.iva ? '' : ' Sin IVA: estimado con la proporción de cada día.'), t);
+
+    /* 2. Pareto y HHI */
+    var porVenta = filas.slice().sort(function (a, b) { return b.venta - a.venta; });
+    var pa = Est.pareto(porVenta.map(function (f) { return f.venta; })), hh = Est.hhi(porVenta.map(function (f) { return f.venta; }));
+    var nombresP = pa.orden.map(function (i) { return porVenta[i].nombre; });
+    var partP = pa.orden.map(function (i) { return porVenta[i].part; });
+    var acumP = pa.acumulado.map(function (x) { return x * 100; });
+    var nivel = hh === null ? '' : hh < 1500 ? 'baja' : hh < 2500 ? 'moderada' : 'alta';
+    var txtP = '<p class="hnota"><b>' + pa.n80 + ' de ' + porVenta.length + '</b> sucursales hacen el 80 % de la venta. ' +
+      (hh !== null ? 'Índice de concentración (HHI): <b>' + num(hh) + '</b>, concentración ' + nivel + '. Equivale a tener ' + num(10000 / hh, 1) +
+        ' sucursales del mismo tamaño; mientras más cerca de ' + porVenta.length + ', más pareja es la venta entre sucursales.' : '') + '</p>';
+    h += tarjeta('Concentración de la venta (Pareto)', 'Participación de cada sucursal, de mayor a menor, y la suma acumulada.',
+      lienzo(G, Math.max(180, porVenta.length * (nombresP.some(function (n) { return n.length > 15; }) ? 30 : 24) + 50), {
+        type: 'bar',
+        data: { labels: nombresP, datasets: [
+          { label: 'Participación', data: partP, backgroundColor: alfa(C.azul, 0.85), borderRadius: 4, barPercentage: 0.8, order: 2 },
+          { label: 'Acumulado', type: 'line', data: acumP, borderColor: C.naranja, backgroundColor: C.naranja, pointRadius: 2.5, order: 1 }
+        ] },
+        options: { indexAxis: 'y', interaction: { mode: 'index', intersect: false, axis: 'y' },
+          plugins: { legend: leyenda(), tooltip: { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + pct(c.parsed.x); } } } },
+          scales: { y: { grid: { display: false }, border: { color: C.borde }, ticks: { color: C.tinta, autoSkip: false, font: { size: 11 },
+            callback: function (v, i) { return dosLineas(nombresP[i] || '', 15); } } },
+            x: { min: 0, max: 100, grid: { color: C.rejilla, drawTicks: false }, border: { display: false }, ticks: { color: C.sec, stepSize: 25, callback: function (v) { return v + ' %'; } } } } }
+      }) + txtP);
+
+    /* 3. Mismas tiendas */
+    if (w.ant) {
+      var mismas = D.filas.filter(function (f) { return f.venta > 0 && f.ant > 0 && !f.nueva; });
+      var m1 = 0, m0 = 0;
+      mismas.forEach(function (f) { m1 += f.venta; m0 += f.ant; });
+      var vm = Est.variacion(m1, m0), vt = Est.variacion(D.total, D.totalAnt), mx = Math.max(Math.abs(vm.dif), Math.abs(vt.dif));
+      var nuevas = D.filas.filter(function (f) { return f.nueva; });
+      var aporte = 0; nuevas.forEach(function (f) { aporte += f.venta; });
+      var cerradas = D.filas.filter(function (f) { return !(f.venta > 0) && f.ant > 0; });
+      var col = function (x) { return x >= 0 ? C.verde : C.rojo; };
+      var cuerpo = '<div class="hlista" style="margin-top:6px">' +
+        filaBarra('Mismas tiendas (' + mismas.length + ')', vm.dif, mx, col(vm.dif), 'Crecimiento ' + (vm.pct !== null ? (vm.pct >= 0 ? '+' : '−') + num(Math.abs(vm.pct), 1) + ' %' : '—'), true) +
+        filaBarra('Total de la empresa (' + D.filas.filter(function (f) { return f.venta > 0; }).length + ')', vt.dif, mx, col(vt.dif), 'Crecimiento ' + (vt.pct !== null ? (vt.pct >= 0 ? '+' : '−') + num(Math.abs(vt.pct), 1) + ' %' : '—'), true) +
+        '</div><p class="hnota">' + (nuevas.length ? 'Las sucursales nuevas (' + nuevas.map(function (f) { return esc(f.nombre); }).join(', ') + ') aportaron ' + usd(aporte) + '.' : 'No hubo sucursales nuevas en el período.') +
+        (cerradas.length ? ' Sin ventas en este período: ' + cerradas.map(function (f) { return esc(f.nombre); }).join(', ') + '.' : '') + '</p>';
+      h += tarjeta('Mismas tiendas', 'Crecimiento contando solo las sucursales que vendieron durante todo el período anterior y el actual, frente al crecimiento total (que incluye las aperturas).', cuerpo);
+    } else {
+      h += tarjeta('Mismas tiendas', 'Elija 30 días, 90 días o 12 meses: se necesita un período anterior completo para comparar.', '');
+    }
+
+    /* 4. Matriz de correlación */
+    h += seccionCorrelacion(porVenta, w);
+
+    /* 5. Detalle */
+    h += seccionDetalle(G, w, filas);
+    return h;
+  }
+
+  function seccionCorrelacion(porVenta, w) {
+    var lista = porVenta.filter(function (f) { return f.vals.filter(function (x) { return x > 0; }).length >= 10; });
+    if (lista.length < 2) return tarjeta('Correlación entre sucursales', 'Hacen falta al menos dos sucursales con 10 días de ventas en el período.', '');
+    var series = lista.map(function (f) { return f.vals.map(function (x) { return x > 0 ? x : null; }); });
+    var M = Est.correlacionMatriz(series), k = lista.length;
+    var vista = document.getElementById('vistaHist');
+    var disponible = Math.max(280, Math.min(484, (vista && vista.clientWidth ? vista.clientWidth : 360) - 36));
+    // El margen izquierdo se ajusta al nombre más largo (hasta 20 letras), para no cortar los nombres habituales.
+    var etiquetas = lista.map(function (f, i) { var n = f.nombre; return (i + 1) + ' ' + (n.length > 20 ? n.slice(0, 19) + '…' : n); });
+    var largoMax = Math.max.apply(null, etiquetas.map(function (t) { return t.length; }));
+    var IZQ = Math.max(80, Math.min(128, Math.round(largoMax * 5.5) + 8)), ARR = 18, cel = Math.max(12, Math.min(30, Math.floor((disponible - IZQ) / k)));
+    var ancho = IZQ + k * cel, alto = ARR + k * cel;
+    var s = '<svg width="' + ancho + '" height="' + alto + '" viewBox="0 0 ' + ancho + ' ' + alto + '" role="img" aria-label="Matriz de correlación">';
+    for (var j = 0; j < k; j++) s += '<text x="' + (IZQ + j * cel + cel / 2) + '" y="12" font-size="10" text-anchor="middle" fill="' + C.sec + '">' + (j + 1) + '</text>';
+    for (var i = 0; i < k; i++) {
+      s += '<text x="0" y="' + (ARR + i * cel + cel / 2 + 3.5) + '" font-size="10" fill="' + C.tinta + '">' + esc(etiquetas[i]) + '</text>';
+      for (j = 0; j < k; j++) {
+        var r = M[i][j], t = lista[i].nombre + ' y ' + lista[j].nombre + ': ' + (esNum(r) ? 'r = ' + num(r, 2) : 'sin días comunes suficientes');
+        s += '<rect data-i="' + i + '" data-t="' + esc(t) + '" x="' + (IZQ + j * cel + 0.5) + '" y="' + (ARR + i * cel + 0.5) + '" width="' + (cel - 1) + '" height="' + (cel - 1) + '" rx="2" fill="' + colorDivergente(r) + '"><title>' + esc(t) + '</title></rect>';
+      }
+    }
+    s += '</svg>';
+    var ley = '<div class="hleyenda">−1 <i class="grad" style="background:linear-gradient(90deg,' + colorDivergente(-1) + ',' + colorDivergente(0) + ',' + colorDivergente(1) + ')"></i> +1</div>';
+    return tarjeta('Correlación entre sucursales', 'Qué tanto suben y bajan juntas las ventas diarias de cada par (azul: se mueven juntas; naranja: en sentido contrario). Toque un cuadro para ver el valor.',
+      '<div class="hmat" data-info="hmatInfo">' + s + '</div>' + ley + '<div class="hinfo" id="hmatInfo"></div>' +
+      '<p class="hnota">Parte del parecido se debe al patrón semanal común (todas venden menos el domingo).</p>');
+  }
+
+  function seccionDetalle(G, w, filas) {
+    var P = S.prep, id = S.sucSel, s = serie('suc', id), nombre = P.nombres[id];
+    var sel = '<select class="hsel" id="hselSuc" aria-label="Sucursal">' + filas.slice().sort(function (a, b) { return a.nombre.localeCompare(b.nombre, 'es'); }).map(function (f) {
+      return '<option value="' + esc(f.id) + '"' + (f.id === id ? ' selected' : '') + '>' + esc(f.nombre) + '</option>';
+    }).join('') + '</select>';
+    var ab = s.map(function (x) { return x > 0 ? x : null; });
+    var mm7 = Est.mediaMovil(ab, 7, false, 0.7), mm28 = Est.mediaMovil(ab, 28, false, 0.7), atip = Est.atipicos(P.fechas, ab), porI = {};
+    atip.forEach(function (x) { porI[x.i] = x; });
+    var etq = etiquetasFechas(w.a, w.b), dV = [], d7 = [], d28 = [], dA = [], fa = [], ya = [], i;
+    for (i = w.a; i <= w.b; i++) {
+      dV.push(s[i]); d7.push(mm7[i]); d28.push(mm28[i]); dA.push(porI[i] ? s[i] : null);
+      if (ab[i] !== null) { fa.push(P.fechas[i]); ya.push(ab[i]); }
+    }
+    var cuerpo = sel + lienzo(G, 230, {
+      type: 'line',
+      data: { labels: etq, datasets: [
+        { label: 'Venta diaria', data: dV, borderColor: alfa(C.azul, 0.35), borderWidth: 1.5, order: 3 },
+        { label: 'Media 7 días', data: d7, borderColor: C.azul, order: 2 },
+        { label: 'Media 28 días', data: d28, borderColor: C.gris, order: 1 },
+        { label: 'Atípico', data: dA, showLine: false, pointRadius: 4, pointBackgroundColor: C.rojo, pointBorderColor: '#fff', pointBorderWidth: 1.5, borderColor: C.rojo, backgroundColor: C.rojo, order: 0 }
+      ] },
+      options: { interaction: { mode: 'index', intersect: false },
+        plugins: { legend: leyenda(), tooltip: { callbacks: {
+          title: function (it) { return fechaLarga(P.fechas[w.a + it[0].dataIndex]); },
+          label: function (c) {
+            if (c.datasetIndex === 3) { var x = porI[w.a + c.dataIndex]; return x ? ' Atípico: esperado ' + usd(x.esperado) + ', diferencia ' + textoVar(x.dif, x.difPct) : null; }
+            return c.parsed.y === null ? null : tipUsd(c);
+          } } } },
+        scales: { x: ejeX(), y: ejeY() } }
+    });
+    var perf = Est.perfilSemanal(fa, ya), pm = [], plo = [], phi = [];
+    ORDEN_SEM.forEach(function (d) { pm.push(perf[d].media); plo.push(perf[d].p25); phi.push(perf[d].p75); });
+    cuerpo += '<p class="hsub">Perfil semanal</p><p class="hexp">Venta media por día de la semana, con el rango de la mitad central.</p>' + lienzo(G, 180, {
+      type: 'bar',
+      data: { labels: ORDEN_SEM.map(function (d) { return DSEM_C[d]; }), datasets: [{ label: 'Venta media', data: pm, backgroundColor: alfa(C.azul, 0.85), borderRadius: 6, maxBarThickness: 30 }] },
+      options: { plugins: { tooltip: { callbacks: {
+        title: function (it) { return DSEM[ORDEN_SEM[it[0].dataIndex]]; },
+        label: function (c) { var j = c.dataIndex; return [' Media: ' + usd(pm[j]), ' Mitad central: ' + usd(plo[j]) + ' a ' + usd(phi[j])]; } } } },
+        scales: { x: ejeSemana(), y: ejeY(null, { beginAtZero: true }) } },
+      plugins: [pluginBigotes(plo, phi)]
+    });
+    var enPeriodo = atip.filter(function (x) { return x.i >= w.a && x.i <= w.b; }).slice(-6).reverse();
+    cuerpo += '<p class="hsub">Días atípicos</p>';
+    if (enPeriodo.length) {
+      cuerpo += '<div class="hscroll"><table class="htab"><thead><tr><th>Fecha</th><th>Venta</th><th>Esperado</th><th>Diferencia</th></tr></thead><tbody>' +
+        enPeriodo.map(function (x) {
+          return '<tr><td>' + fechaDM(x.fecha) + '/' + x.fecha.slice(2, 4) + '</td><td>' + usd(x.valor) + '</td><td>' + usd(x.esperado) + '</td><td class="' + (x.dif >= 0 ? 'mas' : 'menos') + '">' + textoVar(x.dif, x.difPct) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    } else cuerpo += '<p class="hexp">No hubo días atípicos en el período.</p>';
+    return tarjeta('Detalle: ' + esc(nombre), 'Venta diaria de la sucursal con sus medias de 7 y 28 días; en rojo, los días que se apartan mucho de lo esperado.', cuerpo, ' id="hdetalle"');
+  }
+
+  /* ============================== PRONÓSTICO ============================== */
+
+  function modelo() {
+    // Siempre con IVA y con todo el histórico (sin selector).
+    var k = 'modelo|' + (S.hoy ? S.hoy.hoy : '');
+    if (S.cache[k]) return S.cache[k];
+    var P = S.prep, y = P.v.map(function (x) { return x > 0 ? x : null; });
+    var hoyF = S.hoy && S.hoy.hoy && S.hoy.hoy > P.f1 ? S.hoy.hoy : Est.sumarDias(P.f1, 1);
+    var fin = finDeMes(hoyF), H = Math.max(14, Est.difDias(P.f1, fin));
+    var M = {
+      y: y, hoyF: hoyF, fin: fin, H: H,
+      hw: Est.holtWinters(y, { m: 7, h: H, validacion: 28 }),
+      rl: null, ts: null, acf: null, atip: null, cambio: null
+    };
+    var xs = [], ys = [], fs = [];
+    for (var i = 0; i < P.N; i++) if (y[i] !== null) { xs.push(i); ys.push(y[i]); fs.push(P.fechas[i]); }
+    M.rl = Est.regresionLineal(xs, ys);
+    M.media = Est.media(ys);
+    M.ts = Est.tendenciaConSemana(fs, ys);
+    M.acf = Est.acf(ys, 28);
+    M.atip = Est.atipicos(P.fechas, y);
+    M.cambio = Est.puntoCambio(P.fechas, y);
+    S.cache[k] = M;
+    return M;
+  }
+
+  function vistaPronostico(G) {
+    var P = S.prep, M = modelo(), h = '', i, k;
+    if (P.N < 30) {
+      return tarjeta('Pronóstico', 'Hacen falta al menos 30 días de historia para pronosticar. Hoy hay ' + P.N + '.', '');
+    }
+    var hw = M.hw, fc = hw ? hw.pronostico : null;
+    function fechaH(k) { return Est.sumarDias(P.f1, k); }
+    if (!hw) {
+      h += tarjeta('Pronóstico', 'No fue posible ajustar el modelo de pronóstico con los datos disponibles, por lo que no se muestran la proyección del mes ni el pronóstico de 14 días. El resto del análisis sí está disponible.', '');
+    } else {
+
+    /* 1. Proyección del cierre del mes */
+    var mesYM = M.hoyF.slice(0, 7), iniMes = mesYM + '-01';
+    var aMes = Math.max(0, Est.difDias(P.f0, iniMes));
+    var vendHist = Est.difDias(P.f0, iniMes) <= P.N - 1 ? sumaRango(P.v, aMes, P.N - 1) : 0;
+    var vivo = S.hoy && S.hoy.hoy === M.hoyF && esNum(+S.hoy.venta) ? +S.hoy.venta : 0;
+    var dias = [], acumulado = [];
+    for (k = 1; k <= hw.pronostico.length; k++) {
+      var f = fechaH(k);
+      if (f < iniMes || f > M.fin) continue;
+      var p = fc[k - 1];
+      if (f === M.hoyF && vivo > 0) {
+        var resto = Math.max(0, p.valor - vivo), fr = p.valor > 0 ? resto / p.valor : 0;
+        // De hoy solo falta una parte: su error pesa en la misma proporción (peso = fr).
+        dias.push({ f: f, h: k, peso: fr, valor: resto, lo80: p.valor - (p.valor - p.lo80) * fr - (p.valor - resto), hi80: resto + (p.hi80 - p.valor) * fr,
+          lo95: resto - (p.valor - p.lo95) * fr, hi95: resto + (p.hi95 - p.valor) * fr, total: Math.max(p.valor, vivo) });
+      } else dias.push({ f: f, h: k, peso: 1, valor: p.valor, lo80: p.lo80, hi80: p.hi80, lo95: p.lo95, hi95: p.hi95, total: p.valor });
+    }
+    // Rango del cierre: varianza de la suma con la fórmula del modelo (los errores de días seguidos van juntos).
+    var pry = Est.proyeccionMes({ vendido: vendHist + vivo, pronosticoDias: dias, modelo: hw });
+    var mesAnt = Est.sumarDias(iniMes, -1).slice(0, 7);
+    function totalMes(ym) {
+      var a = Est.difDias(P.f0, ym + '-01'), b = Est.difDias(P.f0, finDeMes(ym + '-01'));
+      if (a < 0 || b > P.N - 1 || !cubierto(a, b)) return null;
+      return sumaRango(P.v, a, b);
+    }
+    var tAnt = totalMes(mesAnt), anioAnt = (+mesYM.slice(0, 4) - 1) + mesYM.slice(4), tAnio = totalMes(anioAnt);
+    var nombreMes = MESES_L[+mesYM.slice(5, 7) - 1];
+    var cuerpo = '<div class="hgrande2">' + usd(pry.total) + '</div>' +
+      '<div class="hrango">Rango probable (80 %): ' + usd(pry.lo80) + ' a ' + usd(pry.hi80) + '<br>Rango amplio (95 %): ' + usd(pry.lo95) + ' a ' + usd(pry.hi95) + '</div>' +
+      '<div class="hcomp" style="margin-top:10px"><span>Vendido hasta ahora' + (vivo ? ' (incluye hoy en vivo)' : '') + '</span><b>' + usd(pry.vendido) + '</b></div>' +
+      '<div class="hcomp"><span>Pronóstico de los días que faltan</span><b>' + usd(pry.resto) + '</b></div>' +
+      '<div class="hcomp"><span>Frente a ' + MESES_L[+mesAnt.slice(5, 7) - 1] + ' completo' + (tAnt !== null ? ' (' + usd(tAnt) + ')' : '') + '</span>' + (tAnt !== null ? chip(pry.total, tAnt) : '<span class="hchip">sin datos</span>') + '</div>' +
+      '<div class="hcomp"><span>Frente a ' + nombreMes + ' ' + anioAnt.slice(0, 4) + (tAnio !== null ? ' (' + usd(tAnio) + ')' : '') + '</span>' + (tAnio !== null ? chip(pry.total, tAnio) : '<span class="hchip">sin datos</span>') + '</div>';
+    // Gráfica del acumulado del mes
+    var nDias = +M.fin.slice(8, 10), etqM = [], real = [], proy = [], b80lo = [], b80hi = [], prevAc = [];
+    var acum = 0, pesosAc = [], porFecha = {}, z80 = Est.normInv(0.9);
+    dias.forEach(function (d) { porFecha[d.f] = d; });
+    var aAnt = Est.difDias(P.f0, mesAnt + '-01'), acAnt = 0;
+    for (var dm = 1; dm <= nDias; dm++) {
+      var fd = mesYM + '-' + (dm < 10 ? '0' : '') + dm, j = Est.difDias(P.f0, fd);
+      etqM.push(String(dm));
+      var ja = aAnt + dm - 1;
+      if (tAnt !== null && dm <= +finDeMes(mesAnt + '-01').slice(8, 10)) { acAnt += P.v[ja] || 0; prevAc.push(acAnt); } else prevAc.push(null);
+      if (j >= 0 && j <= P.N - 1) { acum += P.v[j] || 0; real.push(acum); proy.push(null); b80lo.push(null); b80hi.push(null); continue; }
+      if (fd === M.hoyF && vivo > 0) { real.push(acum + vivo); }
+      else real.push(null);
+      var d = porFecha[fd];
+      if (!d) { proy.push(null); b80lo.push(null); b80hi.push(null); continue; }
+      if (proy.every(function (x) { return x === null; })) { // une la proyección con el último real
+        var ult = proy.length - 1;
+        if (ult >= 0 && real[ult] !== null) { proy[ult] = real[ult]; b80lo[ult] = real[ult]; b80hi[ult] = real[ult]; }
+      }
+      acum += (fd === M.hoyF ? vivo : 0) + d.valor;
+      while (pesosAc.length < d.h) pesosAc.push(0);
+      pesosAc[d.h - 1] = d.peso;
+      var sdAc = Math.sqrt(hw.varSuma(pesosAc));
+      proy.push(acum); b80lo.push(Math.max(acum - z80 * sdAc, 0)); b80hi.push(acum + z80 * sdAc);
+    }
+    cuerpo += lienzo(G, 220, {
+      type: 'line',
+      data: { labels: etqM, datasets: [
+        { label: '_alto', data: b80hi, borderWidth: 0, pointRadius: 0, fill: false },
+        { label: 'Rango 80 %', data: b80lo, borderWidth: 0, pointRadius: 0, backgroundColor: alfa(C.azul, 0.14), fill: '-1' },
+        { label: 'Vendido', data: real, borderColor: C.azul, backgroundColor: C.azul },
+        { label: 'Proyección', data: proy, borderColor: C.azul, borderDash: [5, 4], backgroundColor: C.azul },
+        { label: MESES_L[+mesAnt.slice(5, 7) - 1] + ' (referencia)', data: prevAc, borderColor: C.gris, backgroundColor: C.gris, borderWidth: 1.5 }
+      ] },
+      options: { interaction: { mode: 'index', intersect: false },
+        plugins: { legend: leyenda(), tooltip: { filter: function (c) { return c.datasetIndex >= 2 && c.parsed.y !== null; }, callbacks: {
+          title: function (it) { return 'Día ' + it[0].label; }, label: tipUsd } } },
+        scales: { x: ejeX(), y: ejeY(null, { beginAtZero: true }) } }
+    });
+    h += tarjeta('Cierre estimado de ' + nombreMes, 'Lo vendido en el mes más el pronóstico de los días que faltan. El rango del 80 % es el más probable; el del 95 % es casi seguro.', cuerpo, ' class="ht hres"');
+
+    /* 2. Pronóstico de 14 días */
+    var ver = 42, a = Math.max(0, P.N - ver), etq = [], dReal = [], dFc = [], lo80 = [], hi80 = [], lo95 = [], hi95 = [];
+    for (i = a; i < P.N; i++) {
+      etq.push(fechaDM(P.fechas[i])); dReal.push(P.v[i]);
+      var last = i === P.N - 1;
+      dFc.push(last ? P.v[i] : null); lo80.push(last ? P.v[i] : null); hi80.push(last ? P.v[i] : null); lo95.push(last ? P.v[i] : null); hi95.push(last ? P.v[i] : null);
+    }
+    for (k = 1; k <= 14; k++) {
+      var q = fc[k - 1];
+      etq.push(fechaDM(fechaH(k))); dReal.push(null); dFc.push(q.valor); lo80.push(q.lo80); hi80.push(q.hi80); lo95.push(q.lo95); hi95.push(q.hi95);
+    }
+    var nReal = P.N - a;
+    var tabla = '<div class="hscroll"><table class="htab"><thead><tr><th>Día</th><th>Pronóstico</th><th>Rango 80 %</th><th>Rango 95 %</th></tr></thead><tbody>';
+    for (k = 1; k <= 14; k++) {
+      var z = fc[k - 1], fz = fechaH(k);
+      tabla += '<tr><td>' + DSEM_C[Est.diaSemana(fz)] + ' ' + fechaDM(fz) + '</td><td><b>' + usd(z.valor) + '</b></td><td>' + rangoCorto(z.lo80, z.hi80) + '</td><td>' + rangoCorto(z.lo95, z.hi95) + '</td></tr>';
+    }
+    tabla += '</tbody></table></div>';
+    var mult = hw.modelo === 'multiplicativo';
+    var expModelo = '<p class="hnota">Modelo elegido: <b>Holt-Winters ' + hw.modelo + '</b> (' + (mult ? 'el patrón semanal crece con la venta' : 'el patrón semanal suma montos fijos') + '), ' +
+      'con error típico de un día (RMSE) de ' + usd(hw.rmse) + (hw.rmseAditivo !== null && hw.rmseMultiplicativo !== null ? ' frente a ' + usd(mult ? hw.rmseAditivo : hw.rmseMultiplicativo) + ' del ' + (mult ? 'aditivo' : 'multiplicativo') : '') + '. ' +
+      'Parámetros: α = ' + num(hw.alfa, 2) + ' (peso de lo reciente en el nivel), β = ' + num(hw.beta, 2) + ' (tendencia), γ = ' + num(hw.gamma, 2) + ' (patrón semanal).' +
+      (esNum(hw.mape28) ? ' Prueba con los últimos 28 días (sin usarlos para ajustar): el pronóstico se desvió en promedio un <b>' + num(hw.mape28, 1) + ' %</b> de la venta real (MAPE).' : '') + '</p>';
+    h += tarjeta('Pronóstico de 14 días', 'Venta diaria esperada con su rango probable (80 %) y amplio (95 %); el rango se ensancha mientras más lejano es el día.',
+      lienzo(G, 240, {
+        type: 'line',
+        data: { labels: etq, datasets: [
+          { label: '_95a', data: hi95, borderWidth: 0, pointRadius: 0, fill: false },
+          { label: 'Rango 95 %', data: lo95, borderWidth: 0, pointRadius: 0, backgroundColor: alfa(C.naranja, 0.12), fill: '-1' },
+          { label: '_80a', data: hi80, borderWidth: 0, pointRadius: 0, fill: false },
+          { label: 'Rango 80 %', data: lo80, borderWidth: 0, pointRadius: 0, backgroundColor: alfa(C.naranja, 0.22), fill: '-1' },
+          { label: 'Venta real', data: dReal, borderColor: C.azul, backgroundColor: C.azul },
+          { label: 'Pronóstico', data: dFc, borderColor: C.naranja, backgroundColor: C.naranja }
+        ] },
+        options: { interaction: { mode: 'index', intersect: false },
+          plugins: { legend: leyenda(), tooltip: { filter: function (c) { return (c.datasetIndex >= 4 && c.parsed.y !== null) && !(c.datasetIndex === 5 && c.dataIndex < nReal); }, callbacks: {
+            title: function (it) { var j = it[0].dataIndex; var f = j < nReal ? P.fechas[a + j] : fechaH(j - nReal + 1); return fechaLarga(f); },
+            label: tipUsd,
+            footer: function (it) { var j = it[0].dataIndex - nReal; if (j < 0) return ''; var z = fc[j]; return 'Rango 80 %: ' + usd(z.lo80) + ' a ' + usd(z.hi80) + '\nRango 95 %: ' + usd(z.lo95) + ' a ' + usd(z.hi95); } } } },
+          scales: { x: ejeX(), y: ejeY(null, { beginAtZero: true }) } }
+      }) + expModelo + tabla);
+    } // fin de las secciones que necesitan el modelo
+
+    /* 3. Tendencia */
+    var rl = M.rl, ts = M.ts;
+    if (rl) {
+      var porMes = rl.pendiente * 30.4375 / M.media * 100;
+      var etqT = [], dT = [], dL = [], dN = [];
+      var c = M.cambio;
+      for (i = 0; i < P.N; i++) {
+        etqT.push(fechaDM(P.fechas[i]) + '/' + P.fechas[i].slice(2, 4));
+        dT.push(M.y[i]); dL.push(rl.intercepto + rl.pendiente * i);
+        dN.push(c && c.hay && c.nivel ? c.nivel[i] : null);
+      }
+      function pTxt(p) { return !esNum(p) ? '—' : p < 0.001 ? 'p < 0,001' : 'p = ' + num(p, 3); }
+      var efectos = '';
+      if (ts) {
+        efectos = '<div class="hdias">' + ORDEN_SEM.map(function (d) {
+          var e = ts.efectoDia[d];
+          var t = num(Math.abs(e) / 1000, 1); // en miles de dólares, para que quepan los 7 días a 360 px
+          return '<div>' + DSEM_C[d] + '<b>' + (esNum(e) ? (e >= 0 ? '+' : '−') + t : '—') + '</b></div>';
+        }).join('') + '</div>';
+      }
+      var cuerpoT = lienzo(G, 230, {
+        type: 'line',
+        data: { labels: etqT, datasets: [
+          { label: 'Venta diaria', data: dT, borderColor: alfa(C.azul, 0.3), borderWidth: 1.2 },
+          { label: 'Tendencia (MCO)', data: dL, borderColor: C.naranja },
+          { label: 'Nivel con el cambio', data: dN, borderColor: C.agua, spanGaps: true, hidden: !(c && c.hay) }
+        ].filter(function (d) { return !(d.label === 'Nivel con el cambio' && !(c && c.hay)); }) },
+        options: { interaction: { mode: 'index', intersect: false },
+          plugins: { legend: leyenda(), tooltip: { callbacks: { title: function (it) { return fechaLarga(P.fechas[it[0].dataIndex]); }, label: function (x) { return x.parsed.y === null ? null : tipUsd(x); } } } },
+          scales: { x: ejeX(), y: ejeY(null, { beginAtZero: true }) } }
+      });
+      cuerpoT += '<div class="hlista">' +
+        '<div class="it"><div class="k">Pendiente<b>' + (rl.pendiente >= 0 ? '+' : '−') + usd(Math.abs(rl.pendiente)) + '/día</b></div><div class="x">La venta diaria sube en promedio ' + usd(Math.abs(rl.pendiente), true) + ' cada día (' + (porMes >= 0 ? '+' : '−') + num(Math.abs(porMes), 1) + ' % por mes). Intervalo del 95 %: ' + usd(rl.ic95[0], true) + ' a ' + usd(rl.ic95[1], true) + ' por día.</div></div>' +
+        '<div class="it"><div class="k">R²<b>' + num(rl.r2, 2) + '</b></div><div class="x">El ' + num(rl.r2 * 100) + ' % de los cambios de la venta diaria se explica solo por el paso del tiempo.</div></div>' +
+        '<div class="it"><div class="k">Valor p<b>' + pTxt(rl.p).replace('p ', '') + '</b></div><div class="x">Probabilidad de ver una tendencia así por azar si en realidad no la hubiera. Por debajo de 0,05 la tendencia es real.</div></div>';
+      if (ts) {
+        cuerpoT += '<div class="it"><div class="k">Sin el efecto semanal<b>' + (ts.pendienteDia >= 0 ? '+' : '−') + usd(Math.abs(ts.pendienteDia)) + '/día</b></div><div class="x">Regresión múltiple que separa la tendencia del día de la semana. Intervalo del 95 %: ' +
+          usd(ts.ic95[0], true) + ' a ' + usd(ts.ic95[1], true) + '; R² = ' + num(ts.r2, 2) + ' (' + pTxt(ts.p) + ').</div></div>';
+      }
+      cuerpoT += '</div>';
+      if (ts) cuerpoT += '<p class="hsub">Efecto de cada día de la semana</p><p class="hexp">Cuánto vende cada día por encima o por debajo de un día promedio, ya descontada la tendencia, en miles de dólares.</p>' + efectos;
+      h += tarjeta('Tendencia', 'Recta que mejor resume la venta diaria a lo largo del tiempo (mínimos cuadrados).', cuerpoT);
+    }
+
+    /* 4. Autocorrelación */
+    if (M.acf && M.acf.valores.length) {
+      var av = M.acf.valores, banda = M.acf.banda, r7 = av[6], r1 = av[0];
+      var etqA = av.map(function (x, j) { return String(j + 1); });
+      h += tarjeta('Autocorrelación', esNum(r7) && r7 > banda ?
+        'La venta de un día se parece a la de hace 7 días (r = ' + num(r7, 2) + '): el patrón semanal se repite.' :
+        'Qué tanto se parece la venta de un día a la de días anteriores.',
+        lienzo(G, 200, {
+          type: 'bar',
+          data: { labels: etqA, datasets: [
+            { label: 'Autocorrelación', data: av, backgroundColor: av.map(function (x, j) { return (j + 1) % 7 === 0 ? C.azul : alfa(C.azul, 0.45); }), borderRadius: 2, order: 2 },
+            { label: 'Límite de significancia', type: 'line', data: av.map(function () { return banda; }), borderColor: C.gris, borderDash: [4, 4], borderWidth: 1.5, order: 1 },
+            { label: '_lim', type: 'line', data: av.map(function () { return -banda; }), borderColor: C.gris, borderDash: [4, 4], borderWidth: 1.5, order: 1 }
+          ] },
+          options: { interaction: { mode: 'index', intersect: false },
+            plugins: { legend: leyenda(), tooltip: { filter: function (c) { return c.datasetIndex === 0; }, callbacks: {
+              title: function (it) { var l = +it[0].label; return 'Hace ' + l + (l === 1 ? ' día' : ' días'); },
+              label: function (c) { return ' r = ' + num(c.parsed.y, 2); } } } },
+            scales: { x: ejeX({ title: { display: true, text: 'Días de diferencia', color: C.sec, font: { size: 11 } } }), y: ejeY(function (v) { return num(v, 1); }, { min: -1, max: 1 }) } }
+        }) + '<p class="hnota">Las barras fuera de las líneas punteadas (±' + num(banda, 2) + ') indican un parecido que no es casualidad. Ayer y hoy: r = ' + num(r1, 2) + '.</p>');
+    }
+
+    /* 5. Días atípicos */
+    var ult = M.atip.slice(-10).reverse();
+    var tAt = ult.length ? '<div class="hscroll"><table class="htab"><thead><tr><th>Fecha</th><th>Venta</th><th>Esperado</th><th>Diferencia</th></tr></thead><tbody>' +
+      ult.map(function (x) {
+        return '<tr><td>' + DSEM_C[Est.diaSemana(x.fecha)] + ' ' + fechaDM(x.fecha) + '/' + x.fecha.slice(2, 4) + '</td><td>' + usd(x.valor) + '</td><td>' + usd(x.esperado) + '</td><td class="' + (x.dif >= 0 ? 'mas' : 'menos') + '">' + textoVar(x.dif, x.difPct) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : '<p class="hvacio">No se encontraron días atípicos.</p>';
+    h += tarjeta('Días atípicos', 'Los 10 más recientes. Esperado: el promedio del momento ajustado por el día de la semana. Es atípico si se aparta más de 3,5 veces la variación típica (puntaje robusto). Los días de quincena y fin de mes suelen aparecer aquí por el pago de nómina.', tAt);
+
+    /* 6. Cambio de nivel */
+    var cm = M.cambio, txtC;
+    if (cm && cm.hay) {
+      var vc = Est.variacion(cm.nivelDespues, cm.nivelAntes);
+      txtC = '<p class="hexp" style="color:' + C.tinta + ';font-size:14px;margin-top:10px">Desde el <b>' + fechaDMA(cm.fecha) + '</b> la venta diaria media pasó de <b>' + usd(cm.nivelAntes) + '</b> a <b>' + usd(cm.nivelDespues) + '</b> ' +
+        '<span class="hchip ' + (vc.dif >= 0 ? 'mas' : 'menos') + '">' + textoVar(vc.dif, vc.pct) + '</span></p>' +
+        '<p class="hnota">Montos de un día promedio, sin el efecto del día de la semana, justo antes y justo después del salto; el crecimiento gradual de fondo se descuenta aparte. ' +
+        'Probabilidad de ver un salto así por azar: ' + (cm.p <= 0.0034 ? 'menos de 0,4 %' : num(cm.p * 100, 1) + ' %') + ' (se repite la búsqueda 299 veces con la serie barajada por bloques de días, porque elegir el día del mayor salto exagera cualquier prueba común). ' +
+        'Solo se informa si esa probabilidad es menor de 1 % y el salto supera el 5 %. En la gráfica de tendencia aparece como «Nivel con el cambio».</p>';
+    } else txtC = '<p class="hexp" style="margin-top:10px">No se detecta un cambio de nivel claro en la venta diaria media.</p>';
+    h += tarjeta('Cambio de nivel', 'Busca el día en que la venta media dio un salto, aparte del crecimiento gradual, y comprueba que no sea casualidad.', txtC);
+
+    /* 7. Nota de métodos */
+    h += tarjeta('Sobre los métodos', '', '<div class="hnota"><p>Los pronósticos usan la venta diaria total con IVA de todo el histórico (' + num(P.N) + ' días); los días sin ventas se tratan como datos faltantes.</p>' +
+      '<p>Los rangos suponen que los errores son aproximadamente normales. El rango del cierre del mes tiene en cuenta que, si el pronóstico se desvía un día, suele desviarse igual los días siguientes. En la práctica pueden quedarse cortos ante feriados o hechos imprevistos.</p>' +
+      '<p>Con pocos meses de historia los pronósticos y la tendencia son orientativos. El índice estacional, la autocorrelación y los atípicos mejoran a medida que se acumulan datos.</p></div>');
+    return h;
+  }
+
+  /* ============================== arranque ============================== */
+  window.Hist = { estado: S, mostrar: mostrar, dibujar: dibujar };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+})();
 </script>
 </body>
 </html>
