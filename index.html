@@ -5,141 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Facturación en tiempo real</title>
+<title>Facturación de hoy</title>
 <style>
-  :root { --tinta:#303030; --sec:#5C5C63; --borde:#E1E1E4; --humo:#F7F7F8; --azul:#194AD1; --azul50:#E8EDFB;
-          --verde:#0E7A3F; --rojo:#D10032; }
+  :root { --tinta:#1F1F22; --sec:#6B6B72; --borde:#ECECEF; --azul:#194AD1; --verde:#0E7A3F; --rojo:#C2002F; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--tinta); font-family:Montserrat,'Segoe UI',Arial,sans-serif; }
-  main { max-width:680px; margin:0 auto; padding:20px 16px 48px; }
-  .marca { font-size:13px; letter-spacing:.5px; color:var(--azul); font-weight:700; }
-  .fecha { font-size:15px; color:var(--sec); margin-top:2px; }
-  .vivo { display:inline-flex; align-items:center; gap:8px; margin-top:14px; padding:6px 12px; border-radius:999px;
-          background:var(--humo); font-size:13px; color:var(--sec); }
-  .punto { width:9px; height:9px; border-radius:50%; background:var(--verde); animation:latido 2s infinite; }
-  .punto.error { background:var(--rojo); animation:none; }
-  @keyframes latido { 0%,100% { opacity:1 } 50% { opacity:.35 } }
-  .etq { font-size:15px; color:var(--sec); margin-top:22px; }
-  .total { font-size:56px; font-weight:800; line-height:1.05; margin:2px 0 6px; font-variant-numeric:tabular-nums; }
-  .det { font-size:16px; color:var(--sec); }
-  .tarjetas { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:22px; }
-  .tarjeta { background:var(--humo); border-radius:12px; padding:14px; }
-  .tarjeta .t { font-size:13px; color:var(--sec); }
-  .tarjeta .v { font-size:22px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
-  .tarjeta .s { font-size:13px; color:var(--sec); margin-top:2px; }
-  .barra { height:8px; border-radius:4px; background:var(--borde); margin-top:8px; overflow:hidden; }
-  .barra > i { display:block; height:100%; background:var(--azul); border-radius:4px; }
-  h2 { font-size:20px; margin:36px 0 4px; }
-  .sub { font-size:14px; color:var(--sec); margin-bottom:6px; }
+  main { max-width:560px; margin:0 auto; padding:24px 16px 40px; }
+  .cab { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--sec); }
+  .estado { display:flex; align-items:center; gap:6px; }
+  .punto { width:8px; height:8px; border-radius:50%; background:var(--verde); }
+  .punto.error { background:var(--rojo); }
+  .total { font-size:60px; font-weight:800; line-height:1; margin:4px 0 8px; font-variant-numeric:tabular-nums; }
+  .chico { font-size:14px; color:var(--sec); line-height:1.5; }
+  .comp { font-size:15px; margin-top:16px; }
+  .mas { color:var(--verde); font-weight:700; }
+  .menos { color:var(--rojo); font-weight:700; }
+  .barra { height:4px; border-radius:2px; background:var(--borde); margin-top:8px; overflow:hidden; }
+  .barra > i { display:block; height:100%; background:var(--azul); }
+  .lista { margin-top:36px; }
   .fila { padding:14px 0; border-top:1px solid var(--borde); }
-  .fila .arriba { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-  .fila .nom { font-size:16px; font-weight:600; }
-  .fila .ven { font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .fila .info { font-size:13px; color:var(--sec); margin-top:3px; display:flex; justify-content:space-between; gap:10px; }
-  .fila .linea { font-size:13px; color:var(--sec); margin-top:3px; }
-  .pie { margin-top:32px; font-size:12px; color:#7E7E86; line-height:1.5; }
-  .aviso { margin-top:16px; padding:12px 14px; border-radius:10px; background:#FFF6DE; font-size:14px; display:none; }
-  .cargando { color:var(--sec); font-size:16px; margin-top:40px; }
-  @media (max-width:380px) { .total { font-size:44px; } .tarjetas { grid-template-columns:1fr; } }
+  .fila .a { display:flex; justify-content:space-between; gap:12px; font-size:16px; }
+  .fila .a b { font-variant-numeric:tabular-nums; }
+  .fila .chico { font-size:13px; margin-top:2px; }
+  .aviso { margin-top:20px; font-size:14px; color:var(--rojo); display:none; }
+  .pie { margin-top:28px; font-size:12px; color:var(--sec); }
+  @media (max-width:360px) { .total { font-size:48px; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="marca">FACTURACIÓN EN TIEMPO REAL</div>
-  <div class="fecha" id="fecha">Fundafarmacia</div>
-  <div class="vivo"><span class="punto" id="punto"></span><span id="estado">Cargando datos de Plade…</span></div>
+  <div class="cab"><span id="fecha">Facturación de hoy</span>
+    <span class="estado"><span class="punto" id="punto"></span><span id="estado">cargando…</span></span></div>
   <div class="aviso" id="aviso"></div>
-  <div id="contenido"><div class="cargando">Un momento…</div></div>
-  <div class="pie">Fuente: «Gerencia al día» del panel de Plade, en dólares. Los montos principales van con IVA, igual que el «Reporte de ventas» de Plade; el apartado
-    «Sin IVA» coincide con el reporte diario. La página se actualiza sola cada
-    2 minutos; no hace falta recargarla. La comparación usa el cierre completo del mismo día de la semana pasada.
-    El reporte diario detallado sigue llegando por correo a las 5:20 AM.</div>
+  <div id="contenido"></div>
+  <div class="pie">Datos de Plade · con IVA · se actualiza solo cada 2 minutos</div>
 </main>
 <script>
   // Dirección de la app web de Apps Script (modo datos). La clave va en el link después de #k= y nunca llega a GitHub.
   var API = 'https://script.google.com/macros/s/AKfycbyBAqww70el0Vcrl-6SbSuQYJ7-CoPuhq3YRMWZXV7xk3mMxPBKv1pbwheMi2lDGtrc1Q/exec';
-  // La clave se lee en cada consulta (si se cambia lo que va después de #k= sin recargar, se usa la nueva).
-  function clave() {
-    var m = location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/);
-    var k = m ? m[1] : '';
-    try { k = decodeURIComponent(k); } catch (e) {}
-    return k.replace(/[^0-9a-zA-Z]/g, '');   // quita espacios, comillas o puntos que se cuelan al copiar
-  }
   var CADA = 120000;
   var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
   function usd(x, dec) {
     var d = dec ? 2 : 0;
     return '$' + Number(x || 0).toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
   }
   function ent(x) { return Number(x || 0).toLocaleString('es-VE', { maximumFractionDigits: 0 }); }
-  function pct(a, b) { return b ? Math.round(a / b * 100) : null; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-  function fechaLarga(iso) {
-    var d = new Date(iso + 'T12:00:00');
-    return DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear();
-  }
-  function corta(iso) { var p = iso.split('-'); return p[2] + '/' + p[1]; }
+  function fechaCorta(iso) { var d = new Date(iso + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
 
-  // «Hoy ya vendió $X más que ese día (167 %)» o «A hoy le faltan $X para igualar ese día (67 %)».
-  function comparar(hoy, antes, cual) {
-    var q = pct(hoy, antes);
-    if (hoy >= antes) return 'Hoy ya vendió <b>' + usd(hoy - antes) + ' más</b> que ' + cual + ' completo (' + q + ' %).';
-    return 'A hoy le faltan <b>' + usd(antes - hoy) + '</b> para igualar ' + cual + ' completo (lleva el ' + q + ' %).';
+  // «$8.228 más que todo el viernes pasado» o «faltan $681 para igualar el viernes pasado»
+  function comparar(hoy, antes, dia) {
+    if (!antes) return '';
+    if (hoy >= antes) return '<span class="mas">' + usd(hoy - antes) + ' más</span> que todo el ' + dia + ' pasado';
+    return 'faltan <span class="menos">' + usd(antes - hoy) + '</span> para igualar el ' + dia + ' pasado';
+  }
+  function barra(hoy, antes) {
+    return antes ? '<div class="barra"><i style="width:' + Math.min(100, Math.round(hoy / antes * 100)) + '%"></i></div>' : '';
   }
 
   function pintar(d) {
-    document.getElementById('fecha').textContent = 'Hoy, ' + fechaLarga(d.hoy);
-    var p = pct(d.venta, d.semVenta);
-    var h = [];
-    var si = d.sinIva;
-    h.push('<div class="etq">Vendido hoy hasta ahora' + (d.conIva ? ' · con IVA, como en Plade' : '') + '</div>');
+    var dia = d.diaSem, si = d.sinIva, h = [];
+    document.getElementById('fecha').textContent = 'Facturación de hoy · ' + fechaCorta(d.hoy);
+    h.push('<div class="chico" style="margin-top:28px">Vendido hoy' + (d.conIva ? ' · con IVA' : '') + '</div>');
     h.push('<div class="total">' + usd(d.venta) + '</div>');
-    h.push('<div class="det">' + ent(d.tk) + ' tickets · ticket promedio ' + usd(d.ticket, true) + ' · ' + ent(d.un) + ' unidades</div>');
-    h.push('<div class="tarjetas">');
-    h.push('<div class="tarjeta"><div class="t">El ' + d.diaSem + ' pasado (' + corta(d.sem) + ') vendió en todo el día' + (d.conIva ? ', con IVA' : '') + '</div>' +
-           '<div class="v">' + usd(d.semVenta) + '</div>' +
-           '<div class="s">' + (p === null ? 'sin datos' : comparar(d.venta, d.semVenta, 'el ' + d.diaSem + ' pasado')) + '</div>' +
-           '<div class="barra"><i style="width:' + Math.min(100, p || 0) + '%"></i></div></div>');
-    h.push('<div class="tarjeta"><div class="t">Mes acumulado (con hoy)' + (d.conIva ? ', con IVA' : '') + '</div><div class="v">' + usd(d.mes) + '</div>' +
-           '<div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] + '</div></div>');
-    h.push('</div>');
-    if (si) {
-      h.push('<h2>Sin IVA</h2><div class="sub">Los mismos montos sin el IVA, como en el reporte diario de las 5:20 AM.</div>');
-      h.push('<div class="tarjetas"><div class="tarjeta"><div class="t">Vendido hoy sin IVA</div><div class="v">' +
-             usd(si.venta) + '</div><div class="s">ticket promedio ' + usd(si.ticket, true) + '</div></div>' +
-             '<div class="tarjeta"><div class="t">Mes acumulado sin IVA</div><div class="v">' + usd(si.mes) +
-             '</div><div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] +
-             '</div></div></div>');
-    }
-    var iv = d.conIva ? ' (con IVA)' : '';
-    h.push('<h2>Por sucursal</h2><div class="sub">Ordenadas de mayor a menor venta de hoy. La barra compara lo vendido ' +
-           'hoy con lo que esa sucursal vendió en todo el ' + d.diaSem + ' pasado (' + corta(d.sem) + '): llena = ya lo igualó.</div>');
+    h.push('<div class="chico">' + (si ? 'Sin IVA ' + usd(si.venta) + ' · ' : '') + ent(d.tk) + ' tickets · ticket ' +
+           usd(d.ticket, true) + '</div>');
+    h.push('<div class="comp">' + comparar(d.venta, d.semVenta, dia) + '</div>' + barra(d.venta, d.semVenta));
+    h.push('<div class="chico" style="margin-top:12px">Mes: ' + usd(d.mes) + (si ? ' · sin IVA ' + usd(si.mes) : '') + '</div>');
+    h.push('<div class="lista">');
     d.filas.forEach(function (f) {
-      var q = pct(f.venta, f.sem);
-      var comp = q === null ? 'El ' + d.diaSem + ' pasado no tuvo ventas.'
-        : 'El ' + d.diaSem + ' pasado vendió ' + usd(f.sem) + ' en todo el día. ' + comparar(f.venta, f.sem, 'ese día');
-      h.push('<div class="fila"><div class="arriba"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' +
-             usd(f.venta) + '</span></div>' +
-             '<div class="linea">Vendido hoy' + iv + (si ? ' · sin IVA ' + usd(f.sinIva) : '') + '</div>' +
-             '<div class="linea">' + ent(f.tk) + ' tickets hoy · ticket promedio ' + usd(f.ticket, true) + '</div>' +
-             '<div class="linea">' + comp + '</div>' +
-             '<div class="barra"><i style="width:' + Math.min(100, q || 0) + '%"></i></div></div>');
+      h.push('<div class="fila"><div class="a"><span>' + esc(f.nombre) + '</span><b>' + usd(f.venta) + '</b></div>' +
+             '<div class="chico">' + (comparar(f.venta, f.sem, dia) || 'sin ventas el ' + dia + ' pasado') + '</div>' +
+             '<div class="chico">' + ent(f.tk) + ' tickets' + (si ? ' · sin IVA ' + usd(f.sinIva) : '') + '</div>' +
+             barra(f.venta, f.sem) + '</div>');
     });
-    if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas registradas hoy.</div>');
+    if (!d.filas.length) h.push('<div class="fila chico">Todavía no hay ventas hoy.</div>');
+    h.push('</div>');
     document.getElementById('contenido').innerHTML = h.join('');
     document.getElementById('punto').className = 'punto';
-    document.getElementById('estado').textContent = 'En vivo · datos de Plade de las ' + d.hora;
+    document.getElementById('estado').textContent = 'actualizado ' + d.hora;
     document.getElementById('aviso').style.display = 'none';
   }
 
   function fallo(err) {
     document.getElementById('punto').className = 'punto error';
-    document.getElementById('estado').textContent = 'No pude actualizar; reintento en 2 minutos';
+    document.getElementById('estado').textContent = 'sin conexión';
     var a = document.getElementById('aviso');
-    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Los números de abajo son los últimos que llegaron.';
+    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Reintento en 2 minutos.';
     a.style.display = 'block';
+  }
+
+  // La clave se lee en cada consulta (si se cambia lo que va después de #k= sin recargar, se usa la nueva).
+  function clave() {
+    var m = location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/);
+    var k = m ? m[1] : '';
+    try { k = decodeURIComponent(k); } catch (e) {}
+    return k.replace(/[^0-9a-zA-Z]/g, '');
   }
 
   function cargar() {
