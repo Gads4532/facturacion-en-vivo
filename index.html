@@ -82,6 +82,13 @@
   }
   function corta(iso) { var p = iso.split('-'); return p[2] + '/' + p[1]; }
 
+  // «Hoy ya vendió $X más que ese día (167 %)» o «A hoy le faltan $X para igualar ese día (67 %)».
+  function comparar(hoy, antes, cual) {
+    var q = pct(hoy, antes);
+    if (hoy >= antes) return 'Hoy ya vendió <b>' + usd(hoy - antes) + ' más</b> que ' + cual + ' completo (' + q + ' %).';
+    return 'A hoy le faltan <b>' + usd(antes - hoy) + '</b> para igualar ' + cual + ' completo (lleva el ' + q + ' %).';
+  }
+
   function pintar(d) {
     document.getElementById('fecha').textContent = 'Hoy, ' + fechaLarga(d.hoy);
     var p = pct(d.venta, d.semVenta);
@@ -93,7 +100,7 @@
     h.push('<div class="tarjetas">');
     h.push('<div class="tarjeta"><div class="t">El ' + d.diaSem + ' pasado (' + corta(d.sem) + ') vendió en todo el día' + (d.conIva ? ', con IVA' : '') + '</div>' +
            '<div class="v">' + usd(d.semVenta) + '</div>' +
-           '<div class="s">' + (p === null ? 'sin datos' : 'Hoy ya lleva el ' + p + ' % de esa cifra' + (p >= 100 ? ' (ya la superó)' : '')) + '</div>' +
+           '<div class="s">' + (p === null ? 'sin datos' : comparar(d.venta, d.semVenta, 'el ' + d.diaSem + ' pasado')) + '</div>' +
            '<div class="barra"><i style="width:' + Math.min(100, p || 0) + '%"></i></div></div>');
     h.push('<div class="tarjeta"><div class="t">Mes acumulado (con hoy)' + (d.conIva ? ', con IVA' : '') + '</div><div class="v">' + usd(d.mes) + '</div>' +
            '<div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] + '</div></div>');
@@ -112,8 +119,7 @@
     d.filas.forEach(function (f) {
       var q = pct(f.venta, f.sem);
       var comp = q === null ? 'El ' + d.diaSem + ' pasado no tuvo ventas.'
-        : 'El ' + d.diaSem + ' pasado completo vendió ' + usd(f.sem) + ' → hoy ya lleva el <b>' + q + ' %</b>' +
-          (q >= 100 ? ' (ya lo superó)' : '') + '.';
+        : 'El ' + d.diaSem + ' pasado vendió ' + usd(f.sem) + ' en todo el día. ' + comparar(f.venta, f.sem, 'ese día');
       h.push('<div class="fila"><div class="arriba"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' +
              usd(f.venta) + '</span></div>' +
              '<div class="linea">Vendido hoy' + iv + (si ? ' · sin IVA ' + usd(f.sinIva) : '') + '</div>' +
