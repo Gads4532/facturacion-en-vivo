@@ -69,12 +69,12 @@
     <span class="estado"><span class="punto" id="punto"></span><span id="estado">cargando…</span></span></div>
   <div class="aviso" id="aviso"></div>
   <div id="contenido"></div>
-  <div class="pie">Datos de Plade · se actualiza solo cada 2 minutos</div>
+  <div class="pie">Datos de Plade · se actualiza solo cada minuto</div>
 </main>
 <script>
   // Dirección de la app web de Apps Script (modo datos). La clave va en el link después de #k= y nunca llega a GitHub.
   var API = 'https://script.google.com/macros/s/AKfycbyBAqww70el0Vcrl-6SbSuQYJ7-CoPuhq3YRMWZXV7xk3mMxPBKv1pbwheMi2lDGtrc1Q/exec';
-  var CADA = 120000;
+  var CADA = 60000;
   var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
   function usd(x, dec) {
@@ -158,7 +158,7 @@
     document.getElementById('punto').className = 'punto error';
     document.getElementById('estado').textContent = 'sin conexión';
     var a = document.getElementById('aviso');
-    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Reintento en 2 minutos.';
+    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Reintento en un minuto.';
     a.style.display = 'block';
   }
 
