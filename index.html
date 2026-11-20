@@ -182,6 +182,21 @@
   cargar();
   setInterval(cargar, CADA);
   window.addEventListener('hashchange', cargar);
+
+  // Si se publica una versión nueva de la página, la pestaña abierta la toma sola (sin recargar a mano).
+  // Compara el código de esta pestaña con el publicado; si cambió, recarga (la clave después de # se conserva).
+  var huella = null, MIO = [document.querySelector('style').textContent, document.currentScript.textContent];
+  function revisarVersion() {
+    fetch(location.pathname + '?v=' + new Date().getTime(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (t) {
+        if (!t || t.indexOf('</html>') < 0) return;
+        if (MIO.some(function (x) { return t.indexOf(x) < 0; }) || (huella !== null && t !== huella)) location.reload();
+        huella = t;
+      })
+      .catch(function () {});
+  }
+  if (location.protocol !== 'file:') { revisarVersion(); setInterval(revisarVersion, 3 * 60000); }
   document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
 </script>
 </body>
