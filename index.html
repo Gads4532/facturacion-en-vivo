@@ -46,6 +46,20 @@
   .aviso { margin-top:14px; padding:12px 16px; border-radius:14px; font-size:14px; color:var(--rojo); background:var(--rojo50);
            display:none; }
   .pie { margin-top:18px; font-size:12px; color:var(--sec); text-align:center; }
+  /* Animación al cambiar un valor: el número corre hasta el nuevo y se tiñe un instante */
+  .n { display:inline-block; }
+  .n.sube { animation:sube 1.8s ease-out; }
+  .n.baja { animation:baja 1.8s ease-out; }
+  .hero .n.sube { animation-name:subeHero; }
+  .hero .n.baja { animation-name:bajaHero; }
+  @keyframes sube { 0%,35% { color:var(--verde); } 100% { color:inherit; } }
+  @keyframes baja { 0%,35% { color:var(--rojo); } 100% { color:inherit; } }
+  @keyframes subeHero { 0%,35% { color:#B8F7D4; } 100% { color:inherit; } }
+  @keyframes bajaHero { 0%,35% { color:#FFD3DC; } 100% { color:inherit; } }
+  .barra > i { transition:width .9s cubic-bezier(.2,.8,.2,1); }
+  #contenido.entra { animation:entra .45s ease-out; }
+  @keyframes entra { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) { .n.sube, .n.baja, #contenido.entra { animation:none; } .barra > i { transition:none; } }
   @media (max-width:360px) { .hero .total { font-size:46px; } }
 </style>
 </head>
@@ -77,8 +91,40 @@
     var v = Math.round((hoy - antes) / antes * 100), sube = hoy >= antes;
     return { sube: sube, txt: (sube ? '+' : '−') + usd(Math.abs(hoy - antes)) + ' · ' + (sube ? '+' : '−') + ent(Math.abs(v)) + '\u00a0%' };
   }
-  function barra(hoy, antes) {
-    return antes ? '<div class="barra"><i style="width:' + Math.min(100, Math.round(hoy / antes * 100)) + '%"></i></div>' : '';
+  // Número animable: guarda su valor para compararlo en la siguiente actualización.
+  function n(k, x, dec) { return '<span class="n" data-k="' + esc(k) + '" data-v="' + Number(x || 0) + '"' + (dec ? ' data-d="1"' : '') + '>' + usd(x, dec) + '</span>'; }
+  function nEnt(k, x) { return '<span class="n" data-k="' + esc(k) + '" data-v="' + Number(x || 0) + '" data-e="1">' + ent(x) + '</span>'; }
+  function barra(hoy, antes, k) {
+    return antes ? '<div class="barra"><i data-k="' + esc(k) + '" data-w="' + Math.min(100, Math.round(hoy / antes * 100)) + '"></i></div>' : '';
+  }
+
+  var antes = {}, anchos = {}, primera = true;
+  var QUIETO = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function animar() {
+    var cont = document.getElementById('contenido');
+    if (primera) { cont.classList.add('entra'); primera = false; }
+    cont.querySelectorAll('.n').forEach(function (el) {
+      var k = el.dataset.k, v = Number(el.dataset.v), o = antes[k];
+      antes[k] = v;
+      if (o === undefined || o === v) return;
+      el.classList.add(v > o ? 'sube' : 'baja');
+      if (QUIETO) return;
+      var fmt = el.dataset.e ? ent : function (x) { return usd(x, !!el.dataset.d); };
+      var t0 = null, DUR = 900;
+      el.textContent = fmt(o);
+      (function paso(t) {
+        if (t0 === null) t0 = t;
+        var p = Math.min(1, (t - t0) / DUR), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(p < 1 ? o + (v - o) * e : v);
+        if (p < 1) requestAnimationFrame(paso);
+      })(performance.now());
+    });
+    cont.querySelectorAll('.barra > i').forEach(function (el) {
+      var k = el.dataset.k, w = Number(el.dataset.w), o = anchos[k];
+      anchos[k] = w;
+      el.style.width = (o === undefined ? w : o) + '%';
+      if (o !== undefined && o !== w) requestAnimationFrame(function () { requestAnimationFrame(function () { el.style.width = w + '%'; }); });
+    });
   }
 
   function pintar(d) {
@@ -86,22 +132,23 @@
     document.getElementById('fecha').textContent = 'Facturación de hoy · ' + fechaCorta(d.hoy);
     var vt = variacion(d.venta, d.semVenta);
     h.push('<div class="hero"><div class="et">Vendido hoy' + (d.conIva ? ' · con IVA' : '') + '</div>' +
-           '<div class="total">' + usd(d.venta) + '</div>' +
-           '<div class="det">' + (si ? 'Sin IVA ' + usd(si.venta) + ' · ' : '') + ent(d.tk) + ' tickets · ticket ' + usd(d.ticket, true) + '</div>' +
-           (vt ? '<div class="pill">' + vt.txt + ' frente al ' + ref + '</div>' + barra(d.venta, d.semVenta) : '') +
+           '<div class="total">' + n('venta', d.venta) + '</div>' +
+           '<div class="det">' + (si ? 'Sin IVA ' + n('sinIva', si.venta) + ' · ' : '') + nEnt('tk', d.tk) + ' tickets · ticket ' + n('ticket', d.ticket, true) + '</div>' +
+           (vt ? '<div class="pill">' + vt.txt + ' frente al ' + ref + '</div>' + barra(d.venta, d.semVenta, 'total') : '') +
            '</div>');
-    h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + usd(si.mes) : '') + '</span><b>' + usd(d.mes) + '</b></div>');
+    h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + n('mesSin', si.mes) : '') + '</span><b>' + n('mes', d.mes) + '</b></div>');
     h.push('<div class="tarjeta"><div class="titulo">Sucursales · frente al cierre del ' + ref + '</div>');
     d.filas.forEach(function (f) {
       var v = variacion(f.venta, f.sem);
-      h.push('<div class="fila"><div class="a"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' + usd(f.venta) + '</span></div>' +
-             '<div class="b"><span>' + ent(f.tk) + ' tickets' + (si ? ' · sin IVA ' + usd(f.sinIva) : '') + '</span>' +
+      h.push('<div class="fila"><div class="a"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' + n('v:' + f.nombre, f.venta) + '</span></div>' +
+             '<div class="b"><span>' + nEnt('t:' + f.nombre, f.tk) + ' tickets' + (si ? ' · sin IVA ' + n('s:' + f.nombre, f.sinIva) : '') + '</span>' +
              (v ? '<span class="chip ' + (v.sube ? 'mas' : 'menos') + '">' + v.txt + '</span>' : '<span>sin ventas el ' + ref + '</span>') +
-             '</div>' + barra(f.venta, f.sem) + '</div>');
+             '</div>' + barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas hoy.</div>');
     h.push('</div>');
     document.getElementById('contenido').innerHTML = h.join('');
+    animar();
     document.getElementById('punto').className = 'punto';
     document.getElementById('estado').textContent = 'actualizado ' + d.hora;
     document.getElementById('aviso').style.display = 'none';
