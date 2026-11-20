@@ -36,6 +36,10 @@
   .fila .nom { font-size:16px; font-weight:600; }
   .fila .ven { font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .fila .info { font-size:13px; color:var(--sec); margin-top:3px; display:flex; justify-content:space-between; gap:10px; }
+  .fila .info span:last-child { text-align:right; }
+  .guia { margin:10px 0 6px; padding:12px 14px; border-radius:10px; background:var(--azul50); font-size:13px;
+          line-height:1.5; color:var(--tinta); }
+  .guia > div { margin-top:4px; }
   .pie { margin-top:32px; font-size:12px; color:#7E7E86; line-height:1.5; }
   .aviso { margin-top:16px; padding:12px 14px; border-radius:10px; background:#FFF6DE; font-size:14px; display:none; }
   .cargando { color:var(--sec); font-size:16px; margin-top:40px; }
@@ -105,14 +109,21 @@
              '</div><div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] +
              '</div></div></div>');
     }
-    h.push('<h2>Por sucursal</h2><div class="sub">Venta de hoy' + (d.conIva ? ' con IVA (debajo, sin IVA)' : '') + ', tickets y ticket promedio. A la derecha, cuánto lleva ' +
-           'del cierre del ' + d.diaSem + ' pasado.</div>');
+    h.push('<h2>Por sucursal</h2><div class="sub">Ordenadas de mayor a menor venta de hoy.</div>');
+    h.push('<div class="guia"><b>Cómo leer cada sucursal</b>' +
+           '<div>• <b>Arriba a la derecha:</b> lo vendido hoy hasta ahora' + (d.conIva ? ', con IVA como en Plade' : '') + '.</div>' +
+           '<div>• <b>Abajo a la izquierda:</b> tickets de hoy y ticket promedio (venta ÷ tickets)' +
+           (si ? '; debajo, la misma venta sin IVA' : '') + '.</div>' +
+           '<div>• <b>Abajo a la derecha y la barra:</b> cuánto lleva hoy comparado con lo que vendió esa sucursal en ' +
+           '<b>todo el ' + d.diaSem + ' pasado (' + corta(d.sem) + ')</b>. Por ejemplo, «80 % del ' + d.diaSem +
+           ' pasado ($1.000)» quiere decir que ese día cerró en $1.000 y hoy ya va por $800. ' +
+           'Con 100 % o más (barra llena) ya igualó o superó ese día completo.</div></div>');
     d.filas.forEach(function (f) {
       var q = pct(f.venta, f.sem);
       h.push('<div class="fila"><div class="arriba"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' +
              usd(f.venta) + '</span></div><div class="info"><span>' + ent(f.tk) + ' tickets · ticket ' + usd(f.ticket, true) +
              (si ? '<br>sin IVA ' + usd(f.sinIva) : '') +
-             '</span><span>' + (q === null ? '—' : q + ' % de ' + usd(f.sem)) + '</span></div>' +
+             '</span><span>' + (q === null ? 'sin venta el ' + d.diaSem + ' pasado' : q + ' % del ' + d.diaSem + ' pasado (' + usd(f.sem) + ')') + '</span></div>' +
              '<div class="barra"><i style="width:' + Math.min(100, q || 0) + '%"></i></div></div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas registradas hoy.</div>');
