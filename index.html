@@ -54,11 +54,12 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function fechaCorta(iso) { var d = new Date(iso + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
 
-  // «$8.228 más que todo el viernes pasado» o «faltan $681 para igualar el viernes pasado»
+  // «$8.228 más (+67 %) que todo el viernes pasado» o «faltan $681 (−31 %) para igualar el viernes pasado»
   function comparar(hoy, antes, dia) {
     if (!antes) return '';
-    if (hoy >= antes) return '<span class="mas">' + usd(hoy - antes) + ' más</span> que todo el ' + dia + ' pasado';
-    return 'faltan <span class="menos">' + usd(antes - hoy) + '</span> para igualar el ' + dia + ' pasado';
+    var v = Math.round((hoy - antes) / antes * 100);
+    if (hoy >= antes) return '<span class="mas">' + usd(hoy - antes) + ' más (+' + ent(v) + ' %)</span> que todo el ' + dia + ' pasado';
+    return 'faltan <span class="menos">' + usd(antes - hoy) + ' (−' + ent(-v) + ' %)</span> para igualar el ' + dia + ' pasado';
   }
   function barra(hoy, antes) {
     return antes ? '<div class="barra"><i style="width:' + Math.min(100, Math.round(hoy / antes * 100)) + '%"></i></div>' : '';
