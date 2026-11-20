@@ -49,7 +49,8 @@
   <div class="vivo"><span class="punto" id="punto"></span><span id="estado">Cargando datos de Plade…</span></div>
   <div class="aviso" id="aviso"></div>
   <div id="contenido"><div class="cargando">Un momento…</div></div>
-  <div class="pie">Fuente: «Gerencia al día» del panel de Plade, en dólares y sin IVA. La página se actualiza sola cada
+  <div class="pie">Fuente: «Gerencia al día» del panel de Plade, en dólares. Los montos principales van con IVA, igual que el «Reporte de ventas» de Plade; el apartado
+    «Sin IVA» coincide con el reporte diario. La página se actualiza sola cada
     2 minutos; no hace falta recargarla. La comparación usa el cierre completo del mismo día de la semana pasada.
     El reporte diario detallado sigue llegando por correo a las 5:20 AM.</div>
 </main>
@@ -84,7 +85,8 @@
     document.getElementById('fecha').textContent = 'Hoy, ' + fechaLarga(d.hoy);
     var p = pct(d.venta, d.semVenta);
     var h = [];
-    h.push('<div class="etq">Vendido hoy hasta ahora</div>');
+    var si = d.sinIva;
+    h.push('<div class="etq">Vendido hoy hasta ahora' + (d.conIva ? ' · con IVA, como en Plade' : '') + '</div>');
     h.push('<div class="total">' + usd(d.venta) + '</div>');
     h.push('<div class="det">' + ent(d.tk) + ' tickets · ticket promedio ' + usd(d.ticket, true) + ' · ' + ent(d.un) + ' unidades</div>');
     h.push('<div class="tarjetas">');
@@ -95,12 +97,21 @@
     h.push('<div class="tarjeta"><div class="t">Mes acumulado (con hoy)</div><div class="v">' + usd(d.mes) + '</div>' +
            '<div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] + '</div></div>');
     h.push('</div>');
-    h.push('<h2>Por sucursal</h2><div class="sub">Venta de hoy, tickets y ticket promedio. A la derecha, cuánto lleva ' +
+    if (si) {
+      h.push('<h2>Sin IVA</h2><div class="sub">Los mismos montos sin el IVA, como en el reporte diario de las 5:20 AM.</div>');
+      h.push('<div class="tarjetas"><div class="tarjeta"><div class="t">Vendido hoy sin IVA</div><div class="v">' +
+             usd(si.venta) + '</div><div class="s">ticket promedio ' + usd(si.ticket, true) + '</div></div>' +
+             '<div class="tarjeta"><div class="t">Mes acumulado sin IVA</div><div class="v">' + usd(si.mes) +
+             '</div><div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] +
+             '</div></div></div>');
+    }
+    h.push('<h2>Por sucursal</h2><div class="sub">Venta de hoy' + (d.conIva ? ' con IVA (debajo, sin IVA)' : '') + ', tickets y ticket promedio. A la derecha, cuánto lleva ' +
            'del cierre del ' + d.diaSem + ' pasado.</div>');
     d.filas.forEach(function (f) {
       var q = pct(f.venta, f.sem);
       h.push('<div class="fila"><div class="arriba"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' +
              usd(f.venta) + '</span></div><div class="info"><span>' + ent(f.tk) + ' tickets · ticket ' + usd(f.ticket, true) +
+             (si ? '<br>sin IVA ' + usd(f.sinIva) : '') +
              '</span><span>' + (q === null ? '—' : q + ' % de ' + usd(f.sem)) + '</span></div>' +
              '<div class="barra"><i style="width:' + Math.min(100, q || 0) + '%"></i></div></div>');
     });
