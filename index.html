@@ -56,7 +56,13 @@
 <script>
   // Dirección de la app web de Apps Script (modo datos). La clave va en el link después de #k= y nunca llega a GitHub.
   var API = 'https://script.google.com/macros/s/AKfycbyBAqww70el0Vcrl-6SbSuQYJ7-CoPuhq3YRMWZXV7xk3mMxPBKv1pbwheMi2lDGtrc1Q/exec';
-  var CLAVE = (location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/) || [])[1] || '';
+  // La clave se lee en cada consulta (si se cambia lo que va después de #k= sin recargar, se usa la nueva).
+  function clave() {
+    var m = location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/);
+    var k = m ? m[1] : '';
+    try { k = decodeURIComponent(k); } catch (e) {}
+    return k.replace(/[^0-9a-zA-Z]/g, '');   // quita espacios, comillas o puntos que se cuelan al copiar
+  }
   var CADA = 120000;
   var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -115,6 +121,7 @@
 
   function cargar() {
     if (window.DATOS_PRUEBA) { pintar(window.DATOS_PRUEBA); return; }
+    var CLAVE = clave();
     if (!CLAVE) { fallo('el link no trae la clave; usa el botón del reporte diario'); return; }
     fetch(API + '?formato=json&k=' + encodeURIComponent(CLAVE), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
@@ -123,6 +130,7 @@
   }
   cargar();
   setInterval(cargar, CADA);
+  window.addEventListener('hashchange', cargar);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
 </script>
 </body>
