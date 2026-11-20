@@ -54,30 +54,31 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function fechaCorta(iso) { var d = new Date(iso + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
 
-  // «$8.228 más (+67 %) que todo el viernes pasado» o «faltan $681 (−31 %) para igualar el viernes pasado»
-  function comparar(hoy, antes, dia) {
+  // «Frente al cierre del viernes 13/11: +$8.228 (+67 %)» o «… −$681 (−31 %)»
+  function comparar(hoy, antes, ref) {
     if (!antes) return '';
     var v = Math.round((hoy - antes) / antes * 100);
-    if (hoy >= antes) return '<span class="mas">' + usd(hoy - antes) + ' más (+' + ent(v) + ' %)</span> que todo el ' + dia + ' pasado';
-    return 'faltan <span class="menos">' + usd(antes - hoy) + ' (−' + ent(-v) + ' %)</span> para igualar el ' + dia + ' pasado';
+    var txt = hoy >= antes ? '<span class="mas">+' + usd(hoy - antes) + ' (+' + ent(v) + '\u00a0%)</span>'
+                           : '<span class="menos">−' + usd(antes - hoy) + ' (−' + ent(-v) + '\u00a0%)</span>';
+    return 'Frente al cierre del ' + ref + ': ' + txt;
   }
   function barra(hoy, antes) {
     return antes ? '<div class="barra"><i style="width:' + Math.min(100, Math.round(hoy / antes * 100)) + '%"></i></div>' : '';
   }
 
   function pintar(d) {
-    var dia = d.diaSem, si = d.sinIva, h = [];
+    var dia = d.diaSem, ref = fechaCorta(d.sem), si = d.sinIva, h = [];
     document.getElementById('fecha').textContent = 'Facturación de hoy · ' + fechaCorta(d.hoy);
     h.push('<div class="chico" style="margin-top:28px">Vendido hoy' + (d.conIva ? ' · con IVA' : '') + '</div>');
     h.push('<div class="total">' + usd(d.venta) + '</div>');
     h.push('<div class="chico">' + (si ? 'Sin IVA ' + usd(si.venta) + ' · ' : '') + ent(d.tk) + ' tickets · ticket ' +
            usd(d.ticket, true) + '</div>');
-    h.push('<div class="comp">' + comparar(d.venta, d.semVenta, dia) + '</div>' + barra(d.venta, d.semVenta));
+    h.push('<div class="comp">' + comparar(d.venta, d.semVenta, ref) + '</div>' + barra(d.venta, d.semVenta));
     h.push('<div class="chico" style="margin-top:12px">Mes: ' + usd(d.mes) + (si ? ' · sin IVA ' + usd(si.mes) : '') + '</div>');
     h.push('<div class="lista">');
     d.filas.forEach(function (f) {
       h.push('<div class="fila"><div class="a"><span>' + esc(f.nombre) + '</span><b>' + usd(f.venta) + '</b></div>' +
-             '<div class="chico">' + (comparar(f.venta, f.sem, dia) || 'sin ventas el ' + dia + ' pasado') + '</div>' +
+             '<div class="chico">' + (comparar(f.venta, f.sem, ref) || 'Sin ventas el ' + ref) + '</div>' +
              '<div class="chico">' + ent(f.tk) + ' tickets' + (si ? ' · sin IVA ' + usd(f.sinIva) : '') + '</div>' +
              barra(f.venta, f.sem) + '</div>');
     });
