@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Facturación en tiempo real</title>
+<style>
+  :root { --tinta:#303030; --sec:#5C5C63; --borde:#E1E1E4; --humo:#F7F7F8; --azul:#194AD1; --azul50:#E8EDFB;
+          --verde:#0E7A3F; --rojo:#D10032; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--tinta); font-family:Montserrat,'Segoe UI',Arial,sans-serif; }
+  main { max-width:680px; margin:0 auto; padding:20px 16px 48px; }
+  .marca { font-size:13px; letter-spacing:.5px; color:var(--azul); font-weight:700; }
+  .fecha { font-size:15px; color:var(--sec); margin-top:2px; }
+  .vivo { display:inline-flex; align-items:center; gap:8px; margin-top:14px; padding:6px 12px; border-radius:999px;
+          background:var(--humo); font-size:13px; color:var(--sec); }
+  .punto { width:9px; height:9px; border-radius:50%; background:var(--verde); animation:latido 2s infinite; }
+  .punto.error { background:var(--rojo); animation:none; }
+  @keyframes latido { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+  .etq { font-size:15px; color:var(--sec); margin-top:22px; }
+  .total { font-size:56px; font-weight:800; line-height:1.05; margin:2px 0 6px; font-variant-numeric:tabular-nums; }
+  .det { font-size:16px; color:var(--sec); }
+  .tarjetas { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:22px; }
+  .tarjeta { background:var(--humo); border-radius:12px; padding:14px; }
+  .tarjeta .t { font-size:13px; color:var(--sec); }
+  .tarjeta .v { font-size:22px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
+  .tarjeta .s { font-size:13px; color:var(--sec); margin-top:2px; }
+  .barra { height:8px; border-radius:4px; background:var(--borde); margin-top:8px; overflow:hidden; }
+  .barra > i { display:block; height:100%; background:var(--azul); border-radius:4px; }
+  h2 { font-size:20px; margin:36px 0 4px; }
+  .sub { font-size:14px; color:var(--sec); margin-bottom:6px; }
+  .fila { padding:14px 0; border-top:1px solid var(--borde); }
+  .fila .arriba { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .fila .nom { font-size:16px; font-weight:600; }
+  .fila .ven { font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .fila .info { font-size:13px; color:var(--sec); margin-top:3px; display:flex; justify-content:space-between; gap:10px; }
+  .pie { margin-top:32px; font-size:12px; color:#7E7E86; line-height:1.5; }
+  .aviso { margin-top:16px; padding:12px 14px; border-radius:10px; background:#FFF6DE; font-size:14px; display:none; }
+  .cargando { color:var(--sec); font-size:16px; margin-top:40px; }
+  @media (max-width:380px) { .total { font-size:44px; } .tarjetas { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="marca">FACTURACIÓN EN TIEMPO REAL</div>
+  <div class="fecha" id="fecha">Fundafarmacia</div>
+  <div class="vivo"><span class="punto" id="punto"></span><span id="estado">Cargando datos de Plade…</span></div>
+  <div class="aviso" id="aviso"></div>
+  <div id="contenido"><div class="cargando">Un momento…</div></div>
+  <div class="pie">Fuente: «Gerencia al día» del panel de Plade, en dólares y sin IVA. La página se actualiza sola cada
+    2 minutos; no hace falta recargarla. La comparación usa el cierre completo del mismo día de la semana pasada.
+    El reporte diario detallado sigue llegando por correo a las 5:20 AM.</div>
+</main>
+<script>
+  // Dirección de la app web de Apps Script (modo datos). La clave va en el link después de #k= y nunca llega a GitHub.
+  var API = 'https://script.google.com/macros/s/AKfycbyBAqww70el0Vcrl-6SbSuQYJ7-CoPuhq3YRMWZXV7xk3mMxPBKv1pbwheMi2lDGtrc1Q/exec';
+  var CLAVE = (location.hash.match(/k=([^&]+)/) || location.search.match(/k=([^&]+)/) || [])[1] || '';
+  var CADA = 120000;
+  var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function usd(x, dec) {
+    var d = dec ? 2 : 0;
+    return '$' + Number(x || 0).toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function ent(x) { return Number(x || 0).toLocaleString('es-VE', { maximumFractionDigits: 0 }); }
+  function pct(a, b) { return b ? Math.round(a / b * 100) : null; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function fechaLarga(iso) {
+    var d = new Date(iso + 'T12:00:00');
+    return DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear();
+  }
+  function corta(iso) { var p = iso.split('-'); return p[2] + '/' + p[1]; }
+
+  function pintar(d) {
+    document.getElementById('fecha').textContent = 'Hoy, ' + fechaLarga(d.hoy);
+    var p = pct(d.venta, d.semVenta);
+    var h = [];
+    h.push('<div class="etq">Vendido hoy hasta ahora</div>');
+    h.push('<div class="total">' + usd(d.venta) + '</div>');
+    h.push('<div class="det">' + ent(d.tk) + ' tickets · ticket promedio ' + usd(d.ticket, true) + ' · ' + ent(d.un) + ' unidades</div>');
+    h.push('<div class="tarjetas">');
+    h.push('<div class="tarjeta"><div class="t">El ' + d.diaSem + ' pasado (' + corta(d.sem) + ') cerró en</div>' +
+           '<div class="v">' + usd(d.semVenta) + '</div>' +
+           '<div class="s">' + (p === null ? 'sin datos' : 'Hoy ya va en el ' + p + ' % de esa cifra') + '</div>' +
+           '<div class="barra"><i style="width:' + Math.min(100, p || 0) + '%"></i></div></div>');
+    h.push('<div class="tarjeta"><div class="t">Mes acumulado (con hoy)</div><div class="v">' + usd(d.mes) + '</div>' +
+           '<div class="s">del 1 al ' + Number(d.hoy.slice(8)) + ' de ' + MESES[Number(d.hoy.slice(5, 7)) - 1] + '</div></div>');
+    h.push('</div>');
+    h.push('<h2>Por sucursal</h2><div class="sub">Venta de hoy, tickets y ticket promedio. A la derecha, cuánto lleva ' +
+           'del cierre del ' + d.diaSem + ' pasado.</div>');
+    d.filas.forEach(function (f) {
+      var q = pct(f.venta, f.sem);
+      h.push('<div class="fila"><div class="arriba"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' +
+             usd(f.venta) + '</span></div><div class="info"><span>' + ent(f.tk) + ' tickets · ticket ' + usd(f.ticket, true) +
+             '</span><span>' + (q === null ? '—' : q + ' % de ' + usd(f.sem)) + '</span></div>' +
+             '<div class="barra"><i style="width:' + Math.min(100, q || 0) + '%"></i></div></div>');
+    });
+    if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas registradas hoy.</div>');
+    document.getElementById('contenido').innerHTML = h.join('');
+    document.getElementById('punto').className = 'punto';
+    document.getElementById('estado').textContent = 'En vivo · datos de Plade de las ' + d.hora;
+    document.getElementById('aviso').style.display = 'none';
+  }
+
+  function fallo(err) {
+    document.getElementById('punto').className = 'punto error';
+    document.getElementById('estado').textContent = 'No pude actualizar; reintento en 2 minutos';
+    var a = document.getElementById('aviso');
+    a.textContent = 'No pude traer los datos: ' + ((err && err.message) || err) + '. Los números de abajo son los últimos que llegaron.';
+    a.style.display = 'block';
+  }
+
+  function cargar() {
+    if (window.DATOS_PRUEBA) { pintar(window.DATOS_PRUEBA); return; }
+    if (!CLAVE) { fallo('el link no trae la clave; usa el botón del reporte diario'); return; }
+    fetch(API + '?formato=json&k=' + encodeURIComponent(CLAVE), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (r) { if (r && r.ok) pintar(r.datos); else fallo(r && r.error === 'Link no válido' ? 'el link no es válido' : (r && r.error) || 'sin respuesta'); })
+      .catch(function (err) { fallo(err); });
+  }
+  cargar();
+  setInterval(cargar, CADA);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
+</script>
+</body>
+</html>
