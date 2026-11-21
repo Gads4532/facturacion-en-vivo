@@ -262,7 +262,7 @@
   function variacion(hoy, antes) {
     if (!antes) return null;
     var v = Math.round((hoy - antes) / antes * 100), sube = hoy >= antes;
-    return { sube: sube, txt: (sube ? '+' : '−') + usd(Math.abs(hoy - antes)) + '\u2002' + (sube ? '+' : '−') + ent(Math.abs(v)) + '\u00a0%' };
+    return { sube: sube, txt: (sube ? '+' : '−') + usd(Math.abs(hoy - antes)) + ' (' + (sube ? '+' : '−') + ent(Math.abs(v)) + '\u00a0%)' };
   }
   // Número animable: guarda su valor para compararlo en la siguiente actualización.
   function n(k, x, dec) { return '<span class="n" data-k="' + esc(k) + '" data-v="' + Number(x || 0) + '"' + (dec ? ' data-d="1"' : '') + '>' + usd(x, dec) + '</span>'; }
@@ -1737,7 +1737,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Est;
   }
   function esNum(v) { return typeof v === 'number' && isFinite(v); }
 
-  /* Texto de una variación: «+$1.234 · +12 %». tipo: usd | usd2 | ent | num2 | pp */
+  /* Texto de una variación: «+$1.234 (+12 %)». tipo: usd | usd2 | ent | num2 | pp */
   function textoVar(dif, p, tipo) {
     if (esCero(dif, p, tipo)) { dif = 0; p = 0; }
     var s = dif > 0 ? '+' : dif < 0 ? '−' : '', a = Math.abs(dif), m;
@@ -1747,7 +1747,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Est;
     else if (tipo === 'pp') return s + num(a, 1) + ' pts';
     else m = '$' + num(a);
     if (/^\$?[0,]+$/.test(m) && esNum(p) && p !== 0) return (p > 0 ? '+' : '−') + pctVar(p);
-    return s + m + (p !== null && p !== undefined && isFinite(p) ? '\u2002' + (p > 0 ? '+' : p < 0 ? '−' : '') + pctVar(p) : '');
+    return s + m + (p !== null && p !== undefined && isFinite(p) ? ' (' + (p > 0 ? '+' : p < 0 ? '−' : '') + pctVar(p) + ')' : '');
   }
   /* Una variación que se muestra como 0 (por ejemplo −0,004 unidades) no lleva signo ni color. */
   function esCero(dif, p, tipo) {
