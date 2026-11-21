@@ -33,6 +33,7 @@
   .hero .barra > i { background:#fff; }
   .hero .cierre { margin-top:14px; font-size:14px; color:rgba(255,255,255,.85); }
   .hero .cierre b { color:#fff; font-weight:700; margin-left:4px; }
+  .cierreS b { color:var(--tinta); font-weight:700; margin-left:2px; }
   .mes { margin-top:12px; padding:14px 18px; border-radius:18px; background:#fff; display:flex; justify-content:space-between;
          align-items:baseline; font-size:14px; color:var(--sec); }
   .mes b { color:var(--tinta); font-size:18px; font-variant-numeric:tabular-nums; }
@@ -307,12 +308,16 @@
            (d.semVenta ? '<div class="cierre">Venta total al cierre del ' + ref + ' <b>' + n('semVenta', d.semVenta) + '</b></div>' : '') +
            '</div>');
     h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + n('mesSin', si.mes) : '') + '</span><b>' + n('mes', d.mes) + '</b></div>');
-    h.push('<div class="tarjeta"><div class="titulo">Sucursales frente al cierre del ' + ref + '</div>');
+    var aLaHora = d.filas.some(function (f) { return f.semH > 0; });
+    h.push('<div class="tarjeta"><div class="titulo">Sucursales frente al ' + (aLaHora ? ref + ' a esta hora' : 'cierre del ' + ref) + '</div>');
     d.filas.forEach(function (f) {
-      var v = variacion(f.venta, f.sem);
+      // Con cortes a la hora: chip verde/rojo frente a la misma hora. Sin ellos: solo el cierre de ese día, sin color.
+      var v = aLaHora ? variacion(f.venta, f.semH) : null;
       h.push('<div class="fila"><div class="a"><span class="nom">' + esc(f.nombre) + '</span><span class="ven">' + n('v:' + f.nombre, f.venta) + '</span></div>' +
              '<div class="b"><span>' + nEnt('t:' + f.nombre, f.tk) + ' tickets' + (si ? ' · sin IVA ' + n('s:' + f.nombre, f.sinIva) : '') + '</span>' +
-             (v ? '<span class="chip ' + (v.sube ? 'mas' : 'menos') + '">' + v.txt + '</span>' : '<span>sin ventas el ' + ref + '</span>') +
+             (v ? '<span class="chip ' + (v.sube ? 'mas' : 'menos') + '">' + v.txt + '</span>' :
+              f.sem ? '<span class="cierreS">cierre del ' + ref + ' <b>' + n('c:' + f.nombre, f.sem) + '</b></span>' :
+              '<span>sin ventas el ' + ref + '</span>') +
              '</div>' + barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas hoy.</div>');
