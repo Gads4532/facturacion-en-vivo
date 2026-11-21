@@ -36,6 +36,8 @@
   .cierreS b { color:var(--tinta); font-weight:700; margin-left:2px; }
   .hero .cierre.junto { margin-top:4px; }
   .ref { font-size:12px; color:var(--sec); margin-top:4px; }
+  .ref.nota { margin-top:12px; line-height:1.4; }
+  .hero .prec { margin-top:10px; font-size:11.5px; line-height:1.4; color:rgba(255,255,255,.75); }
   .ref b { color:var(--tinta); font-weight:600; }
   .mes { margin-top:12px; padding:14px 18px; border-radius:18px; background:#fff; display:flex; justify-content:space-between;
          align-items:baseline; font-size:14px; color:var(--sec); }
@@ -298,6 +300,11 @@
     });
   }
 
+  var PRECISION = {
+    minuto: 'Precisión al minuto: suma de cada factura del Libro de ventas de Plade hasta esta hora.',
+    hora: 'Horas completas exactas (Resumen de ventas por hora de Plade); los minutos de la hora en curso, estimados. Descargando el detalle por minuto…',
+    cortes: 'Con cortes guardados por esta página cada 10 minutos (Plade no respondió el reporte por hora).'
+  };
   function pintar(d) {
     var ref = fechaCorta(d.sem), si = d.sinIva, h = [];
     document.getElementById('fecha').textContent = 'Facturación de hoy · ' + fechaCorta(d.hoy);
@@ -310,6 +317,7 @@
            (vt ? '<div class="pill ' + (vt.sube ? 'sube' : 'baja') + '"><span class="flecha">' + (vt.sube ? '▲' : '▼') + '</span>' + vt.txt + ' frente al ' + ref + ' a esta hora</div>' + barra(d.venta, sh, 'total') : '') +
            (vt ? '<div class="cierre">Vendido el ' + ref + ' hasta las ' + esc(d.hora) + ' <b>' + n('semHora', sh) + '</b></div>' : '') +
            (d.semVenta ? '<div class="cierre' + (vt ? ' junto' : '') + '">Venta total al cierre del ' + ref + ' <b>' + n('semVenta', d.semVenta) + '</b></div>' : '') +
+           (vt ? '<div class="prec">' + PRECISION[d.precision || 'hora'] + '</div>' : '') +
            '</div>');
     h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + n('mesSin', si.mes) : '') + '</span><b>' + n('mes', d.mes) + '</b></div>');
     var aLaHora = d.filas.some(function (f) { return f.semH > 0; });
@@ -327,6 +335,9 @@
              barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas hoy.</div>');
+    if (aLaHora) h.push('<div class="ref nota">Cada sucursal: horas completas exactas del «Resumen de ventas por hora» de Plade; ' +
+      (d.precision === 'minuto' ? 'los minutos de la hora en curso se reparten según el ritmo minuto a minuto de toda la empresa ese día (Libro de ventas).'
+                                : 'los minutos de la hora en curso, en proporción al tiempo transcurrido.') + '</div>');
     h.push('</div>');
     document.getElementById('contenido').innerHTML = h.join('');
     animar();
@@ -357,8 +368,18 @@
     if (!CLAVE) { fallo('el link no trae la clave; usa el botón del reporte diario'); return; }
     fetch(API + '?formato=json&k=' + encodeURIComponent(CLAVE), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (r) { if (r && r.ok) pintar(r.datos); else fallo(r && r.error === 'Link no válido' ? 'el link no es válido' : (r && r.error) || 'sin respuesta'); })
+      .then(function (r) { if (r && r.ok) { pintar(r.datos); pedirMinutos(r.datos, CLAVE); } else fallo(r && r.error === 'Link no válido' ? 'el link no es válido' : (r && r.error) || 'sin respuesta'); })
       .catch(function (err) { fallo(err); });
+  }
+  // Precisión al minuto: el detalle de facturas del día de referencia se descarga aparte, una sola vez (es pesado).
+  var minutosPedido = null;
+  function pedirMinutos(d, k) {
+    if (!d.pedirMinutos || minutosPedido === d.sem) return;
+    minutosPedido = d.sem;
+    fetch(API + '?formato=minutos&k=' + encodeURIComponent(k), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (r) { if (r && r.ok && r.datos && r.datos.listo) cargar(); })
+      .catch(function () {});
   }
   cargar();
   setInterval(cargar, CADA);
