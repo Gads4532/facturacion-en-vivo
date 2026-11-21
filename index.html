@@ -31,6 +31,8 @@
   .pill .flecha { font-size:10px; margin-right:6px; vertical-align:1px; }
   .hero .barra { background:rgba(255,255,255,.25); margin-top:12px; }
   .hero .barra > i { background:#fff; }
+  .hero .cierre { margin-top:14px; font-size:14px; color:rgba(255,255,255,.85); }
+  .hero .cierre b { color:#fff; font-weight:700; margin-left:4px; }
   .mes { margin-top:12px; padding:14px 18px; border-radius:18px; background:#fff; display:flex; justify-content:space-between;
          align-items:baseline; font-size:14px; color:var(--sec); }
   .mes b { color:var(--tinta); font-size:18px; font-variant-numeric:tabular-nums; }
@@ -295,11 +297,14 @@
   function pintar(d) {
     var ref = fechaCorta(d.sem), si = d.sinIva, h = [];
     document.getElementById('fecha').textContent = 'Facturación de hoy · ' + fechaCorta(d.hoy);
-    var vt = variacion(d.venta, d.semVenta);
+    // Comparación a la misma hora del mismo día de la semana pasada (semHora); el cierre de ese día va aparte, sin color.
+    var sh = d.semHora && d.semHora.venta ? d.semHora.venta : 0;
+    var vt = variacion(d.venta, sh);
     h.push('<div class="hero"><div class="et">Vendido hoy' + (d.conIva ? ' · con IVA' : '') + '</div>' +
            '<div class="total">' + n('venta', d.venta) + '</div>' +
            '<div class="det">' + (si ? 'Sin IVA ' + n('sinIva', si.venta) + ' · ' : '') + nEnt('tk', d.tk) + ' tickets · ticket ' + n('ticket', d.ticket, true) + '</div>' +
-           (vt ? '<div class="pill ' + (vt.sube ? 'sube' : 'baja') + '"><span class="flecha">' + (vt.sube ? '▲' : '▼') + '</span>' + vt.txt + ' frente al ' + ref + '</div>' + barra(d.venta, d.semVenta, 'total') : '') +
+           (vt ? '<div class="pill ' + (vt.sube ? 'sube' : 'baja') + '"><span class="flecha">' + (vt.sube ? '▲' : '▼') + '</span>' + vt.txt + ' frente al ' + ref + ' a esta hora</div>' + barra(d.venta, sh, 'total') : '') +
+           (d.semVenta ? '<div class="cierre">Venta total al cierre del ' + ref + ' <b>' + n('semVenta', d.semVenta) + '</b></div>' : '') +
            '</div>');
     h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + n('mesSin', si.mes) : '') + '</span><b>' + n('mes', d.mes) + '</b></div>');
     h.push('<div class="tarjeta"><div class="titulo">Sucursales frente al cierre del ' + ref + '</div>');
