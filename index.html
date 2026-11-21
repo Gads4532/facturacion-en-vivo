@@ -34,6 +34,9 @@
   .hero .cierre { margin-top:14px; font-size:14px; color:rgba(255,255,255,.85); }
   .hero .cierre b { color:#fff; font-weight:700; margin-left:4px; }
   .cierreS b { color:var(--tinta); font-weight:700; margin-left:2px; }
+  .hero .cierre.junto { margin-top:4px; }
+  .ref { font-size:12px; color:var(--sec); margin-top:4px; }
+  .ref b { color:var(--tinta); font-weight:600; }
   .mes { margin-top:12px; padding:14px 18px; border-radius:18px; background:#fff; display:flex; justify-content:space-between;
          align-items:baseline; font-size:14px; color:var(--sec); }
   .mes b { color:var(--tinta); font-size:18px; font-variant-numeric:tabular-nums; }
@@ -305,11 +308,12 @@
            '<div class="total">' + n('venta', d.venta) + '</div>' +
            '<div class="det">' + (si ? 'Sin IVA ' + n('sinIva', si.venta) + ' · ' : '') + nEnt('tk', d.tk) + ' tickets · ticket ' + n('ticket', d.ticket, true) + '</div>' +
            (vt ? '<div class="pill ' + (vt.sube ? 'sube' : 'baja') + '"><span class="flecha">' + (vt.sube ? '▲' : '▼') + '</span>' + vt.txt + ' frente al ' + ref + ' a esta hora</div>' + barra(d.venta, sh, 'total') : '') +
-           (d.semVenta ? '<div class="cierre">Venta total al cierre del ' + ref + ' <b>' + n('semVenta', d.semVenta) + '</b></div>' : '') +
+           (vt ? '<div class="cierre">Vendido el ' + ref + ' hasta las ' + esc(d.hora) + ' <b>' + n('semHora', sh) + '</b></div>' : '') +
+           (d.semVenta ? '<div class="cierre' + (vt ? ' junto' : '') + '">Venta total al cierre del ' + ref + ' <b>' + n('semVenta', d.semVenta) + '</b></div>' : '') +
            '</div>');
     h.push('<div class="mes"><span>Mes acumulado' + (si ? ' · sin IVA ' + n('mesSin', si.mes) : '') + '</span><b>' + n('mes', d.mes) + '</b></div>');
     var aLaHora = d.filas.some(function (f) { return f.semH > 0; });
-    h.push('<div class="tarjeta"><div class="titulo">Sucursales frente al ' + (aLaHora ? ref + ' a esta hora' : 'cierre del ' + ref) + '</div>');
+    h.push('<div class="tarjeta"><div class="titulo">Sucursales frente al ' + (aLaHora ? ref + ' hasta las ' + esc(d.hora) : 'cierre del ' + ref) + '</div>');
     d.filas.forEach(function (f) {
       // Con cortes a la hora: chip verde/rojo frente a la misma hora. Sin ellos: solo el cierre de ese día, sin color.
       var v = aLaHora ? variacion(f.venta, f.semH) : null;
@@ -318,7 +322,9 @@
              (v ? '<span class="chip ' + (v.sube ? 'mas' : 'menos') + '">' + v.txt + '</span>' :
               f.sem ? '<span class="cierreS">cierre del ' + ref + ' <b>' + n('c:' + f.nombre, f.sem) + '</b></span>' :
               '<span>sin ventas el ' + ref + '</span>') +
-             '</div>' + barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
+             '</div>' +
+             (v ? '<div class="ref">' + ref + ' hasta las ' + esc(d.hora) + ' <b>' + n('h:' + f.nombre, f.semH) + '</b> · cierre <b>' + n('c:' + f.nombre, f.sem) + '</b></div>' : '') +
+             barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas hoy.</div>');
     h.push('</div>');
