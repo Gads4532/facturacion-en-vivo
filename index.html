@@ -55,6 +55,28 @@
   .chip.menos { color:var(--rojo); background:var(--rojo50); }
   .barra { height:4px; border-radius:2px; background:var(--borde); margin-top:10px; overflow:hidden; }
   .barra > i { display:block; height:100%; border-radius:2px; background:var(--azul); }
+  /* Gráfico por sucursal: hoy frente a la semana pasada (a esta hora y al cierre) */
+  .graf { margin-top:10px; display:grid; grid-template-columns:auto 1fr auto; gap:5px 8px; align-items:center; font-size:11.5px; color:var(--sec); }
+  .graf .et { white-space:nowrap; }
+  .graf .barra.gb { height:10px; border-radius:5px; margin:0; background:#F1F2F6; }
+  .graf .barra.gb > i { border-radius:5px; }
+  .graf .barra.gb > i.hoy.mas { background:var(--verde); }
+  .graf .barra.gb > i.hoy.menos { background:var(--rojo); }
+  .graf .barra.gb > i.hoy { background:var(--azul); }
+  .graf .barra.gb > i.ant { background:#9AA3C0; }
+  .graf .barra.gb > i.cie { background:#D3D8E6; }
+  .graf .m { text-align:right; color:var(--tinta); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* Reparto al por mayor / consignación */
+  .tipo { margin-top:10px; font-size:11.5px; color:var(--sec); }
+  .tipo .rot { display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 8px; margin-bottom:4px; }
+  .tipo .rot b { color:var(--tinta); font-weight:700; font-variant-numeric:tabular-nums; }
+  .tipo .sp { display:flex; height:18px; border-radius:9px; overflow:hidden; background:#F1F2F6; }
+  .tipo .sp i { display:flex; align-items:center; justify-content:center; height:100%; font-style:normal; font-size:11px;
+                font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; transition:width .9s cubic-bezier(.2,.8,.2,1); }
+  .tipo .sp i.may { background:var(--azul); }
+  .tipo .sp i.con { background:#E8860C; }
+  .tipo .pt { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:4px; vertical-align:0; }
+  .tipo.sin { font-style:italic; }
   .aviso { margin-top:14px; padding:12px 16px; border-radius:14px; font-size:14px; color:var(--rojo); background:var(--rojo50);
            display:none; }
   .pie { margin-top:18px; font-size:12px; color:var(--sec); text-align:center; }
@@ -331,8 +353,7 @@
               f.sem ? '<span class="cierreS">cierre del ' + ref + ' <b>' + n('c:' + f.nombre, f.sem) + '</b></span>' :
               '<span>sin ventas el ' + ref + '</span>') +
              '</div>' +
-             (v ? '<div class="ref">' + ref + ' hasta las ' + esc(d.hora) + ' <b>' + n('h:' + f.nombre, f.semH) + '</b> · cierre <b>' + n('c:' + f.nombre, f.sem) + '</b></div>' : '') +
-             barra(f.venta, f.sem, 'b:' + f.nombre) + '</div>');
+             grafSuc(f, v, ref, d.hora, aLaHora) + tipoVenta(f, si) + '</div>');
     });
     if (!d.filas.length) h.push('<div class="fila">Todavía no hay ventas hoy.</div>');
     if (aLaHora) h.push('<div class="ref nota">Cada sucursal: horas completas exactas del «Resumen de ventas por hora» de Plade; ' +
@@ -344,6 +365,37 @@
     document.getElementById('punto').className = 'punto';
     document.getElementById('estado').textContent = 'En vivo · ' + d.hora;
     document.getElementById('aviso').style.display = 'none';
+  }
+
+  // Gráfico de cada sucursal: barras de hoy, del mismo día de la semana pasada a esta hora y de su cierre, en la misma escala.
+  function grafSuc(f, v, ref, hora, aLaHora) {
+    var filas = [{ et: 'Hoy', x: f.venta, c: 'hoy' + (v ? (v.sube ? ' mas' : ' menos') : ''), k: 'gh:' }];
+    if (aLaHora && f.semH > 0) filas.push({ et: ref + ' a las ' + esc(hora), x: f.semH, c: 'ant', k: 'ga:' });
+    if (f.sem > 0) filas.push({ et: 'Cierre ' + ref, x: f.sem, c: 'cie', k: 'gc:' });
+    if (filas.length < 2) return '';
+    var max = Math.max.apply(null, filas.map(function (r) { return r.x || 0; }));
+    return '<div class="graf">' + filas.map(function (r) {
+      return '<span class="et">' + r.et + '</span><div class="barra gb"><i class="' + r.c + '" data-k="' + esc(r.k + f.nombre) + '" data-w="' +
+        (max > 0 ? Math.round((r.x || 0) / max * 100) : 0) + '"></i></div><span class="m">' + n(r.k + 'n:' + f.nombre, r.x) + '</span>';
+    }).join('') + '</div>';
+  }
+  // Reparto de la venta de la sucursal entre al por mayor y consignación.
+  // Campos esperados del backend en cada fila: mayor y consignacion (con IVA); si falta uno, se toma el resto de la venta.
+  // Mientras el backend no los envíe, la barra no aparece.
+  function num0(x) { return x === undefined || x === null || x === '' || isNaN(+x) ? null : +x; }
+  function tipoVenta(f) {
+    var m = num0(f.mayor !== undefined ? f.mayor : f.ventaMayor), c = num0(f.consignacion !== undefined ? f.consignacion : f.ventaConsignacion);
+    if (m === null && c === null) return ''; // sin desglose del backend: no se muestra nada
+    if (m === null) m = Math.max(0, (f.venta || 0) - c);
+    if (c === null) c = Math.max(0, (f.venta || 0) - m);
+    var t = m + c;
+    if (!(t > 0)) return '<div class="tipo sin">Al por mayor / consignación: sin ventas</div>';
+    var pm = Math.round(m / t * 100), pc = 100 - pm;
+    return '<div class="tipo"><div class="rot"><span><i class="pt" style="background:var(--azul)"></i>Al por mayor <b>' + pm + '\u00a0%</b> · ' + n('m:' + f.nombre, m) + '</span>' +
+      '<span><i class="pt" style="background:#E8860C"></i>Consignación <b>' + pc + '\u00a0%</b> · ' + n('co:' + f.nombre, c) + '</span></div>' +
+      '<div class="sp" role="img" aria-label="Al por mayor ' + pm + ' %, consignación ' + pc + ' %">' +
+      (pm > 0 ? '<i class="may" style="width:' + pm + '%">' + (pm >= 12 ? pm + '\u00a0%' : '') + '</i>' : '') +
+      (pc > 0 ? '<i class="con" style="width:' + pc + '%">' + (pc >= 12 ? pc + '\u00a0%' : '') + '</i>' : '') + '</div></div>';
   }
 
   function fallo(err) {
