@@ -381,10 +381,11 @@
   }
   // Reparto de la venta de la sucursal entre al por mayor y consignación.
   // Campos esperados del backend en cada fila: mayor y consignacion (con IVA); si falta uno, se toma el resto de la venta.
+  // Mientras el backend no los envíe, la barra no aparece.
   function num0(x) { return x === undefined || x === null || x === '' || isNaN(+x) ? null : +x; }
   function tipoVenta(f) {
     var m = num0(f.mayor !== undefined ? f.mayor : f.ventaMayor), c = num0(f.consignacion !== undefined ? f.consignacion : f.ventaConsignacion);
-    if (m === null && c === null) return '<div class="tipo sin">Al por mayor / consignación: sin desglose todavía</div>';
+    if (m === null && c === null) return ''; // sin desglose del backend: no se muestra nada
     if (m === null) m = Math.max(0, (f.venta || 0) - c);
     if (c === null) c = Math.max(0, (f.venta || 0) - m);
     var t = m + c;
